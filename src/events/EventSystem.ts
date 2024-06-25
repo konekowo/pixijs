@@ -346,7 +346,6 @@ export class EventSystem implements System<EventSystemOptions>
     {
         if (!this.features.click) return;
         this.rootBoundary.rootTarget = this.renderer.lastObjectRendered;
-
         const events = this._normalizeToPointerData(nativeEvent);
 
         /*
@@ -743,6 +742,13 @@ export class EventSystem implements System<EventSystemOptions>
         return event;
     }
 
+    // for raw pointerlock
+    private _rawMouseX: number = 0;
+    private _rawMouseY: number = 0;
+    private _lastRawMouseX: number = 0;
+    private _lastRawMouseY: number = 0;
+    public isPointerLocked: boolean = false;
+
     /**
      * Normalizes the `nativeEvent` into a federateed {@link FederatedPointerEvent}.
      * @param event
@@ -765,7 +771,8 @@ export class EventSystem implements System<EventSystemOptions>
         event.twist = nativeEvent.twist;
         this._transferMouseData(event, nativeEvent);
 
-        this.mapPositionToPoint(event.screen, nativeEvent.clientX, nativeEvent.clientY);
+        this.mapPositionToPoint(event.screen, this.isPointerLocked ? this._rawMouseX : nativeEvent.clientX,
+            this.isPointerLocked ? this._rawMouseY : nativeEvent.clientY);
         event.global.copyFrom(event.screen);// global = screen for top-level
         event.offset.copyFrom(event.screen);// EventBoundary recalculates using its rootTarget
 
@@ -782,6 +789,8 @@ export class EventSystem implements System<EventSystemOptions>
         {
             event.type = TOUCH_TO_POINTER[event.type] || event.type;
         }
+        this._lastRawMouseX = this._rawMouseX;
+        this._lastRawMouseY = this._rawMouseY;
 
         return event;
     }
@@ -793,6 +802,11 @@ export class EventSystem implements System<EventSystemOptions>
      */
     private _transferMouseData(event: FederatedMouseEvent, nativeEvent: MouseEvent): void
     {
+        if (this.isPointerLocked)
+        {
+            this._rawMouseX += nativeEvent.movementX;
+            this._rawMouseY += nativeEvent.movementY;
+        }
         event.isTrusted = nativeEvent.isTrusted;
         event.srcElement = nativeEvent.srcElement;
         event.timeStamp = performance.now();
@@ -801,14 +815,14 @@ export class EventSystem implements System<EventSystemOptions>
         event.altKey = nativeEvent.altKey;
         event.button = nativeEvent.button;
         event.buttons = nativeEvent.buttons;
-        event.client.x = nativeEvent.clientX;
-        event.client.y = nativeEvent.clientY;
+        event.client.x = this.isPointerLocked ? this._rawMouseX : nativeEvent.clientX;
+        event.client.y = this.isPointerLocked ? this._rawMouseY : nativeEvent.clientY;
         event.ctrlKey = nativeEvent.ctrlKey;
         event.metaKey = nativeEvent.metaKey;
-        event.movement.x = nativeEvent.movementX;
-        event.movement.y = nativeEvent.movementY;
-        event.page.x = nativeEvent.pageX;
-        event.page.y = nativeEvent.pageY;
+        event.movement.x = this.isPointerLocked ? (this._rawMouseX - this._lastRawMouseX) : nativeEvent.movementX;
+        event.movement.y = this.isPointerLocked ? (this._rawMouseY - this._lastRawMouseY) : nativeEvent.movementY;
+        event.page.x = this.isPointerLocked ? this._rawMouseX : nativeEvent.pageX;
+        event.page.y = this.isPointerLocked ? this._rawMouseY : nativeEvent.pageY;
         event.relatedTarget = null;
         event.shiftKey = nativeEvent.shiftKey;
     }
