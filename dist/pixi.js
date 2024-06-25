@@ -1,6 +1,6 @@
 /*!
- * PixiJS - v8.2.2
- * Compiled Tue, 25 Jun 2024 14:48:11 UTC
+ * PixiJS - v8.2.3
+ * Compiled Tue, 25 Jun 2024 15:06:19 UTC
  *
  * PixiJS is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -7309,8 +7309,8 @@ Deprecated since v${version}`);
        */
       _transferMouseData(event, nativeEvent) {
         if (_EventSystem.isPointerLocked) {
-          this._rawMouseX += nativeEvent.movementX;
-          this._rawMouseY += nativeEvent.movementY;
+          this._rawMouseX += nativeEvent.movementX * _EventSystem.cursorSensitivity;
+          this._rawMouseY += nativeEvent.movementY * _EventSystem.cursorSensitivity;
         }
         event.isTrusted = nativeEvent.isTrusted;
         event.srcElement = nativeEvent.srcElement;
@@ -7357,6 +7357,7 @@ Deprecated since v${version}`);
       wheel: true
     };
     _EventSystem.isPointerLocked = false;
+    _EventSystem.cursorSensitivity = 1;
     let EventSystem = _EventSystem;
 
     "use strict";
@@ -39030,7 +39031,7 @@ ${e}`);
 
     "use strict";
     let saidHello = false;
-    const VERSION = "8.2.2";
+    const VERSION = "8.2.3";
     function sayHello(type) {
       if (saidHello) {
         return;

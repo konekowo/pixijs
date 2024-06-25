@@ -748,6 +748,7 @@ export class EventSystem implements System<EventSystemOptions>
     private _lastRawMouseX: number = 0;
     private _lastRawMouseY: number = 0;
     public static isPointerLocked: boolean = false;
+    public static cursorSensitivity: number = 1;
 
     /**
      * Normalizes the `nativeEvent` into a federateed {@link FederatedPointerEvent}.
@@ -804,8 +805,8 @@ export class EventSystem implements System<EventSystemOptions>
     {
         if (EventSystem.isPointerLocked)
         {
-            this._rawMouseX += nativeEvent.movementX;
-            this._rawMouseY += nativeEvent.movementY;
+            this._rawMouseX += (nativeEvent.movementX * EventSystem.cursorSensitivity);
+            this._rawMouseY += (nativeEvent.movementY * EventSystem.cursorSensitivity);
         }
         event.isTrusted = nativeEvent.isTrusted;
         event.srcElement = nativeEvent.srcElement;
