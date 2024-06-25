@@ -1,6 +1,6 @@
 /*!
- * PixiJS - v8.2.1-alpha.1
- * Compiled Tue, 25 Jun 2024 14:41:57 UTC
+ * PixiJS - v8.2.2
+ * Compiled Tue, 25 Jun 2024 14:48:11 UTC
  *
  * PixiJS is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -39027,7 +39027,7 @@ GlobalUniformSystem.extension = {
 
 "use strict";
 let saidHello = false;
-const VERSION = "8.2.1-alpha.1";
+const VERSION = "8.2.2";
 function sayHello(type) {
   if (saidHello) {
     return;
