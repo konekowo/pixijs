@@ -808,8 +808,15 @@ export class EventSystem implements System<EventSystemOptions>
             const width = this.renderer.width;
             const height = this.renderer.height;
 
-            this._rawMouseX += Math.min(Math.max((nativeEvent.movementX * EventSystem.cursorSensitivity), 0), width);
-            this._rawMouseY += Math.min(Math.max((nativeEvent.movementY * EventSystem.cursorSensitivity), 0), height);
+            this._rawMouseX += (nativeEvent.movementX * EventSystem.cursorSensitivity);
+            this._rawMouseY += (nativeEvent.movementY * EventSystem.cursorSensitivity);
+            this._rawMouseX = Math.min(Math.max(this._rawMouseX, 0), width);
+            this._rawMouseY = Math.min(Math.max(this._rawMouseY, 0), height);
+        }
+        else
+        {
+            this._rawMouseX = nativeEvent.clientX;
+            this._rawMouseY = nativeEvent.clientY;
         }
         event.isTrusted = nativeEvent.isTrusted;
         event.srcElement = nativeEvent.srcElement;
