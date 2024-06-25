@@ -235,7 +235,7 @@ export declare class EventSystem implements System<EventSystemOptions> {
     private _rawMouseY;
     private _lastRawMouseX;
     private _lastRawMouseY;
-    isPointerLocked: boolean;
+    static isPointerLocked: boolean;
     /**
      * Normalizes the `nativeEvent` into a federateed {@link FederatedPointerEvent}.
      * @param event

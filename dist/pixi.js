@@ -1,6 +1,6 @@
 /*!
  * PixiJS - v8.2.1
- * Compiled Tue, 25 Jun 2024 14:26:38 UTC
+ * Compiled Tue, 25 Jun 2024 14:36:52 UTC
  *
  * PixiJS is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -6868,7 +6868,6 @@ Deprecated since v${version}`);
         this._rawMouseY = 0;
         this._lastRawMouseX = 0;
         this._lastRawMouseY = 0;
-        this.isPointerLocked = false;
         this.renderer = renderer;
         this.rootBoundary = new EventBoundary(null);
         EventsTicker.init(this);
@@ -7284,8 +7283,8 @@ Deprecated since v${version}`);
         this._transferMouseData(event, nativeEvent);
         this.mapPositionToPoint(
           event.screen,
-          this.isPointerLocked ? this._rawMouseX : nativeEvent.clientX,
-          this.isPointerLocked ? this._rawMouseY : nativeEvent.clientY
+          _EventSystem.isPointerLocked ? this._rawMouseX : nativeEvent.clientX,
+          _EventSystem.isPointerLocked ? this._rawMouseY : nativeEvent.clientY
         );
         event.global.copyFrom(event.screen);
         event.offset.copyFrom(event.screen);
@@ -7309,7 +7308,7 @@ Deprecated since v${version}`);
        * @param nativeEvent
        */
       _transferMouseData(event, nativeEvent) {
-        if (this.isPointerLocked) {
+        if (_EventSystem.isPointerLocked) {
           this._rawMouseX += nativeEvent.movementX;
           this._rawMouseY += nativeEvent.movementY;
         }
@@ -7320,14 +7319,14 @@ Deprecated since v${version}`);
         event.altKey = nativeEvent.altKey;
         event.button = nativeEvent.button;
         event.buttons = nativeEvent.buttons;
-        event.client.x = this.isPointerLocked ? this._rawMouseX : nativeEvent.clientX;
-        event.client.y = this.isPointerLocked ? this._rawMouseY : nativeEvent.clientY;
+        event.client.x = _EventSystem.isPointerLocked ? this._rawMouseX : nativeEvent.clientX;
+        event.client.y = _EventSystem.isPointerLocked ? this._rawMouseY : nativeEvent.clientY;
         event.ctrlKey = nativeEvent.ctrlKey;
         event.metaKey = nativeEvent.metaKey;
-        event.movement.x = this.isPointerLocked ? this._rawMouseX - this._lastRawMouseX : nativeEvent.movementX;
-        event.movement.y = this.isPointerLocked ? this._rawMouseY - this._lastRawMouseY : nativeEvent.movementY;
-        event.page.x = this.isPointerLocked ? this._rawMouseX : nativeEvent.pageX;
-        event.page.y = this.isPointerLocked ? this._rawMouseY : nativeEvent.pageY;
+        event.movement.x = _EventSystem.isPointerLocked ? this._rawMouseX - this._lastRawMouseX : nativeEvent.movementX;
+        event.movement.y = _EventSystem.isPointerLocked ? this._rawMouseY - this._lastRawMouseY : nativeEvent.movementY;
+        event.page.x = _EventSystem.isPointerLocked ? this._rawMouseX : nativeEvent.pageX;
+        event.page.y = _EventSystem.isPointerLocked ? this._rawMouseY : nativeEvent.pageY;
         event.relatedTarget = null;
         event.shiftKey = nativeEvent.shiftKey;
       }
@@ -7357,6 +7356,7 @@ Deprecated since v${version}`);
       /** Enables wheel events. */
       wheel: true
     };
+    _EventSystem.isPointerLocked = false;
     let EventSystem = _EventSystem;
 
     "use strict";
