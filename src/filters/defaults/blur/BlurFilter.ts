@@ -5,7 +5,6 @@ import { Filter } from '../../Filter';
 import { BlurFilterPass } from './BlurFilterPass';
 
 import type { RenderSurface } from '../../../rendering/renderers/shared/renderTarget/RenderTargetSystem';
-import type { BLEND_MODES } from '../../../rendering/renderers/shared/state/const';
 import type { Texture } from '../../../rendering/renderers/shared/texture/Texture';
 import type { FilterOptions } from '../../Filter';
 import type { FilterSystem } from '../../FilterSystem';
@@ -21,6 +20,16 @@ export interface BlurFilterOptions extends FilterOptions
      * @default 8
      */
     strength?: number;
+    /**
+     * The horizontal strength of the blur.
+     * @default 8
+     */
+    strengthX?: number;
+    /**
+     * The vertical strength of the blur.
+     * @default 8
+     */
+    strengthY?: number;
     /**
      * The quality of the blur filter.
      * @default 4
@@ -63,7 +72,7 @@ export class BlurFilter extends Filter
      */
     constructor(options?: BlurFilterOptions);
     /** @deprecated since 8.0.0 */
-    constructor(strength?: number, quality?: number, resolution?: number, kernelSize?: number);
+    constructor(strength?: number, quality?: number, resolution?: number | null, kernelSize?: number);
     constructor(...args: [BlurFilterOptions?] | [number?, number?, number?, number?])
     {
         let options = args[0] ?? {};
@@ -78,14 +87,14 @@ export class BlurFilter extends Filter
 
             options = { strength: options };
 
-            if (args[1])options.quality = args[1];
-            if (args[2])options.resolution = args[2];
-            if (args[3])options.kernelSize = args[3];
+            if (args[1] !== undefined)options.quality = args[1];
+            if (args[2] !== undefined)options.resolution = args[2] || 'inherit';
+            if (args[3] !== undefined)options.kernelSize = args[3];
         }
 
         options = { ...BlurFilterPass.defaultOptions, ...options };
 
-        const { strength, quality, ...rest } = options;
+        const { strength, strengthX, strengthY, quality, ...rest } = options;
 
         super({
             ...rest,
@@ -93,12 +102,12 @@ export class BlurFilter extends Filter
             resources: {}
         });
 
-        this.blurXFilter = new BlurFilterPass({ horizontal: false, ...options });
-        this.blurYFilter = new BlurFilterPass({ horizontal: true, ...options });
+        this.blurXFilter = new BlurFilterPass({ horizontal: true, ...options });
+        this.blurYFilter = new BlurFilterPass({ horizontal: false, ...options });
 
         this.quality = quality;
-        this.blur = strength;
-
+        this.strengthX = strengthX ?? strength;
+        this.strengthY = strengthY ?? strength;
         this.repeatEdgePixels = false;
     }
 
@@ -123,17 +132,21 @@ export class BlurFilter extends Filter
         {
             const tempTexture = TexturePool.getSameSizeTexture(input);
 
+            this.blurXFilter.blendMode = 'normal';
             this.blurXFilter.apply(filterManager, input, tempTexture, true);
+            this.blurYFilter.blendMode = this.blendMode;
             this.blurYFilter.apply(filterManager, tempTexture, output, clearMode);
 
             TexturePool.returnTexture(tempTexture);
         }
         else if (yStrength)
         {
+            this.blurYFilter.blendMode = this.blendMode;
             this.blurYFilter.apply(filterManager, input, output, clearMode);
         }
         else
         {
+            this.blurXFilter.blendMode = this.blendMode;
             this.blurXFilter.apply(filterManager, input, output, clearMode);
         }
     }
@@ -152,14 +165,19 @@ export class BlurFilter extends Filter
 
     /**
      * Sets the strength of both the blurX and blurY properties simultaneously
-     * @default 2
+     * @default 8
      */
-    get blur(): number
+    get strength(): number
     {
-        return this.blurXFilter.blur;
+        if (this.strengthX !== this.strengthY)
+        {
+            throw new Error('BlurFilter\'s strengthX and strengthY are different');
+        }
+
+        return this.strengthX;
     }
 
-    set blur(value: number)
+    set strength(value: number)
     {
         this.blurXFilter.blur = this.blurYFilter.blur = value;
         this.updatePadding();
@@ -180,47 +198,102 @@ export class BlurFilter extends Filter
     }
 
     /**
-     * Sets the strength of the blurX property
-     * @default 2
+     * Sets the strength of horizontal blur
+     * @default 8
      */
-    get blurX(): number
+    get strengthX(): number
     {
         return this.blurXFilter.blur;
     }
 
-    set blurX(value: number)
+    set strengthX(value: number)
     {
         this.blurXFilter.blur = value;
         this.updatePadding();
     }
 
     /**
-     * Sets the strength of the blurY property
-     * @default 2
+     * Sets the strength of the vertical blur
+     * @default 8
      */
-    get blurY(): number
+    get strengthY(): number
     {
         return this.blurYFilter.blur;
     }
 
-    set blurY(value: number)
+    set strengthY(value: number)
     {
         this.blurYFilter.blur = value;
         this.updatePadding();
     }
 
     /**
-     * Sets the blendmode of the filter
-     * @default "normal"
+     * Sets the strength of both the blurX and blurY properties simultaneously
+     * @default 2
+     * @deprecated since 8.3.0
+     * @see BlurFilter.strength
      */
-    get blendMode(): BLEND_MODES
+    get blur(): number
     {
-        return this.blurYFilter.blendMode;
+        // #if _DEBUG
+        deprecation('8.3.0', 'BlurFilter.blur is deprecated, please use BlurFilter.strength instead.');
+        // #endif
+
+        return this.strength;
     }
 
-    set blendMode(value: BLEND_MODES)
+    set blur(value: number)
     {
-        this.blurYFilter.blendMode = value;
+        // #if _DEBUG
+        deprecation('8.3.0', 'BlurFilter.blur is deprecated, please use BlurFilter.strength instead.');
+        // #endif
+        this.strength = value;
+    }
+
+    /**
+     * Sets the strength of the blurX property
+     * @default 2
+     * @deprecated since 8.3.0
+     * @see BlurFilter.strengthX
+     */
+    get blurX(): number
+    {
+        // #if _DEBUG
+        deprecation('8.3.0', 'BlurFilter.blurX is deprecated, please use BlurFilter.strengthX instead.');
+        // #endif
+
+        return this.strengthX;
+    }
+
+    set blurX(value: number)
+    {
+        // #if _DEBUG
+        deprecation('8.3.0', 'BlurFilter.blurX is deprecated, please use BlurFilter.strengthX instead.');
+        // #endif
+        this.strengthX = value;
+    }
+
+    /**
+     * Sets the strength of the blurY property
+     * @default 2
+     * @deprecated since 8.3.0
+     * @see BlurFilter.strengthY
+     */
+    get blurY(): number
+    {
+        // #if _DEBUG
+        deprecation('8.3.0', 'BlurFilter.blurY is deprecated, please use BlurFilter.strengthY instead.');
+        // #endif
+
+        return this.strengthY;
+    }
+
+    set blurY(value: number)
+    {
+        // #if _DEBUG
+        deprecation('8.3.0', 'BlurFilter.blurY is deprecated, please use BlurFilter.strengthY instead.');
+        // #endif
+        this.strengthY = value;
     }
 
     /**

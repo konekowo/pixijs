@@ -4,8 +4,10 @@ import { updateQuadBounds } from '../../utils/data/updateQuadBounds';
 import { BigPool } from '../../utils/pool/PoolGroup';
 import { BatchableSprite } from '../sprite/BatchableSprite';
 
+import type { InstructionSet } from '../../rendering/renderers/shared/instructions/InstructionSet';
 import type { RenderPipe } from '../../rendering/renderers/shared/instructions/RenderPipe';
 import type { Renderer } from '../../rendering/renderers/types';
+import type { Container } from '../container/Container';
 import type { HTMLText } from './HTMLText';
 import type { HTMLTextStyle } from './HtmlTextStyle';
 
@@ -30,6 +32,8 @@ export class HTMLTextPipe implements RenderPipe<HTMLText>
         currentKey: string,
         batchableSprite: BatchableSprite,
     }> = Object.create(null);
+
+    private readonly _destroyRenderableBound = this.destroyRenderable.bind(this) as (renderable: Container) => void;
 
     constructor(renderer: Renderer)
     {
@@ -76,7 +80,7 @@ export class HTMLTextPipe implements RenderPipe<HTMLText>
         return false;
     }
 
-    public addRenderable(htmlText: HTMLText)
+    public addRenderable(htmlText: HTMLText, _instructionSet: InstructionSet)
     {
         const gpuText = this._getGpuText(htmlText);
 
@@ -105,6 +109,7 @@ export class HTMLTextPipe implements RenderPipe<HTMLText>
 
     public destroyRenderable(htmlText: HTMLText)
     {
+        htmlText.off('destroyed', this._destroyRenderableBound);
         this._destroyRenderableById(htmlText.uid);
     }
 
@@ -204,10 +209,7 @@ export class HTMLTextPipe implements RenderPipe<HTMLText>
         htmlText._resolution = htmlText._autoResolution ? this._renderer.resolution : htmlText.resolution;
         this._gpuText[htmlText.uid] = gpuTextData;
         // TODO perhaps manage this outside this pipe? (a bit like how we update / add)
-        htmlText.on('destroyed', () =>
-        {
-            this.destroyRenderable(htmlText);
-        });
+        htmlText.on('destroyed', this._destroyRenderableBound);
 
         return gpuTextData;
     }
