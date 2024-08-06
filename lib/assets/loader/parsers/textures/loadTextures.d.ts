@@ -1,5 +1,6 @@
 import type { TextureSourceOptions } from '../../../../rendering/renderers/shared/texture/sources/TextureSource';
 import type { Texture } from '../../../../rendering/renderers/shared/texture/Texture';
+import type { ResolvedAsset } from '../../../types';
 import type { LoaderParser } from '../LoaderParser';
 /**
  * Configuration for the [loadTextures]{@link assets.loadTextures} plugin.
@@ -34,7 +35,7 @@ export interface LoadTextureConfig {
  * @param url - The image to load an image bitmap for
  * @ignore
  */
-export declare function loadImageBitmap(url: string): Promise<ImageBitmap>;
+export declare function loadImageBitmap(url: string, asset?: ResolvedAsset<TextureSourceOptions<any>>): Promise<ImageBitmap>;
 /**
  * A simple plugin to load our textures!
  * This makes use of imageBitmaps where available.

@@ -2,7 +2,6 @@ import { ExtensionType } from '../../../extensions/Extensions';
 import { Matrix } from '../../../maths/matrix/Matrix';
 import { BindGroup } from '../../../rendering/renderers/gpu/shader/BindGroup';
 import { UniformGroup } from '../../../rendering/renderers/shared/shader/UniformGroup';
-import type { Instruction } from '../../../rendering/renderers/shared/instructions/Instruction';
 import type { InstructionSet } from '../../../rendering/renderers/shared/instructions/InstructionSet';
 import type { InstructionPipe, RenderPipe } from '../../../rendering/renderers/shared/instructions/RenderPipe';
 import type { Renderer } from '../../../rendering/renderers/types';
@@ -12,11 +11,7 @@ export interface MeshAdaptor {
     execute(meshPipe: MeshPipe, mesh: Mesh): void;
     destroy(): void;
 }
-export interface MeshInstruction extends Instruction {
-    renderPipeId: 'mesh';
-    mesh: Mesh;
-}
-export declare class MeshPipe implements RenderPipe<Mesh>, InstructionPipe<MeshInstruction> {
+export declare class MeshPipe implements RenderPipe<Mesh>, InstructionPipe<Mesh> {
     /** @ignore */
     static extension: {
         readonly type: readonly [ExtensionType.WebGLPipes, ExtensionType.WebGPUPipes, ExtensionType.CanvasPipes];
@@ -41,12 +36,13 @@ export declare class MeshPipe implements RenderPipe<Mesh>, InstructionPipe<MeshI
     private _meshDataHash;
     private _gpuBatchableMeshHash;
     private _adaptor;
+    private readonly _destroyRenderableBound;
     constructor(renderer: Renderer, adaptor: MeshAdaptor);
     validateRenderable(mesh: Mesh): boolean;
     addRenderable(mesh: Mesh, instructionSet: InstructionSet): void;
     updateRenderable(mesh: Mesh): void;
     destroyRenderable(mesh: Mesh): void;
-    execute({ mesh }: MeshInstruction): void;
+    execute(mesh: Mesh): void;
     private _getMeshData;
     private _initMeshData;
     private _getBatchableMesh;

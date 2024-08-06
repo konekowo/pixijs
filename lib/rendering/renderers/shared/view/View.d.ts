@@ -9,16 +9,20 @@ export interface ViewObserver {
  */
 export interface View {
     /** a unique id for this view */
-    uid: number;
+    readonly uid: number;
     /** whether or not this view should be batched */
     batched: boolean;
     /**
      * an identifier that is used to identify the type of system that will be used to render this renderable
      * eg, 'sprite' will use the sprite system (based on the systems name
      */
-    renderPipeId: string;
+    readonly renderPipeId: string;
     /** this is an int because it is packed directly into an attribute in the shader */
     _roundPixels: 0 | 1;
+    /** @private */
+    _lastUsed: number;
+    /** @private */
+    _lastInstructionTick: number;
     /**
      *  Whether or not to round the x/y position of the object.
      * @type {boolean}

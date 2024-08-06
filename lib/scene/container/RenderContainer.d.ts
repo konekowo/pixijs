@@ -59,6 +59,8 @@ export declare class RenderContainer extends Container implements View, Instruct
      */
     roundPixels: boolean;
     _roundPixels: 0 | 1;
+    _lastUsed: number;
+    _lastInstructionTick: number;
     /**
      * The local bounds of the sprite.
      * @type {rendering.Bounds}
@@ -75,13 +77,13 @@ export declare class RenderContainer extends Container implements View, Instruct
      */
     addBounds: (bounds: Bounds) => void;
     canBundle: boolean;
-    renderPipeId: string;
+    readonly renderPipeId: string;
     /**
      * @param options - The options for the container.
      */
     constructor(options: RenderContainerOptions | RenderFunction);
     /**
-     * An overrideable function that can be used to render the object using the current renderer.
+     * An overridable function that can be used to render the object using the current renderer.
      * @param _renderer - The current renderer
      */
     render(_renderer: Renderer): void;

@@ -1,3 +1,4 @@
+import type { Renderable } from '../Renderable';
 import type { Instruction } from './Instruction';
 /**
  * A set of instructions that can be executed by the renderer.
@@ -18,6 +19,8 @@ export declare class InstructionSet {
     instructionSize: number;
     /** allows for access to the render pipes of the renderer */
     renderPipes: any;
+    renderables: Renderable[];
+    tick: number;
     /** reset the instruction set so it can be reused set size back to 0 */
     reset(): void;
     /**

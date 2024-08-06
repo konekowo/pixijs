@@ -344,14 +344,14 @@ export declare class Color {
 	 */
 	toPremultiplied(alpha: number, applyToRGB?: boolean): number;
 	/**
-	 * Convert to a hexidecimal string.
+	 * Convert to a hexadecimal string.
 	 * @example
 	 * import { Color } from 'pixi.js';
 	 * new Color('white').toHex(); // returns "#ffffff"
 	 */
 	toHex(): string;
 	/**
-	 * Convert to a hexidecimal string with alpha.
+	 * Convert to a hexadecimal string with alpha.
 	 * @example
 	 * import { Color } from 'pixi.js';
 	 * new Color('white').toHexa(); // returns "#ffffffff"
@@ -759,256 +759,6 @@ export declare class ObservablePoint implements PointLike {
 	set y(value: number);
 }
 /**
- * An instruction that can be executed by the renderer
- * @memberof rendering
- */
-export interface Instruction {
-	/** a the id of the render pipe that can run this instruction */
-	renderPipeId: string;
-	/** the name of the instruction */
-	action?: string;
-	/** true if this instruction can be compiled into a WebGPU bundle */
-	canBundle: boolean;
-}
-/**
- * A set of instructions that can be executed by the renderer.
- * Basically wraps an array, but with some extra properties that help the renderer
- * to keep things nice and optimised.
- *
- * Note:
- * InstructionSet.instructions contains all the instructions, but does not resize (for performance).
- * So for the true length of the instructions you need to use InstructionSet.instructionSize
- * @memberof rendering
- */
-export declare class InstructionSet {
-	/** a unique id for this instruction set used through the renderer */
-	readonly uid: number;
-	/** the array of instructions */
-	readonly instructions: Instruction[];
-	/** the actual size of the array (any instructions passed this should be ignored) */
-	instructionSize: number;
-	/** allows for access to the render pipes of the renderer */
-	renderPipes: any;
-	/** reset the instruction set so it can be reused set size back to 0 */
-	reset(): void;
-	/**
-	 * Add an instruction to the set
-	 * @param instruction - add an instruction to the set
-	 */
-	add(instruction: Instruction): void;
-	/**
-	 * Log the instructions to the console (for debugging)
-	 * @internal
-	 * @ignore
-	 */
-	log(): void;
-}
-/**
- * A RenderGroup is a class that is responsible for I generating a set of instructions that are used to render the
- * root container and its children. It als watches for any changes in that container or its children,
- * these changes are analysed and either the instruction set is rebuild or the instructions data is updated.
- * @memberof rendering
- */
-export declare class RenderGroup implements Instruction {
-	renderPipeId: string;
-	root: Container;
-	canBundle: boolean;
-	renderGroupParent: RenderGroup;
-	renderGroupChildren: RenderGroup[];
-	worldTransform: Matrix;
-	worldColorAlpha: number;
-	worldColor: number;
-	worldAlpha: number;
-	readonly childrenToUpdate: Record<number, {
-		list: Container[];
-		index: number;
-	}>;
-	updateTick: number;
-	readonly childrenRenderablesToUpdate: {
-		list: Container[];
-		index: number;
-	};
-	structureDidChange: boolean;
-	instructionSet: InstructionSet;
-	private readonly _onRenderContainers;
-	init(root: Container): void;
-	reset(): void;
-	get localTransform(): Matrix;
-	addRenderGroupChild(renderGroupChild: RenderGroup): void;
-	private _removeRenderGroupChild;
-	addChild(child: Container): void;
-	removeChild(child: Container): void;
-	removeChildren(children: Container[]): void;
-	onChildUpdate(child: Container): void;
-	updateRenderable(container: Container): void;
-	onChildViewUpdate(child: Container): void;
-	get isRenderable(): boolean;
-	/**
-	 * adding a container to the onRender list will make sure the user function
-	 * passed in to the user defined 'onRender` callBack
-	 * @param container - the container to add to the onRender list
-	 */
-	addOnRender(container: Container): void;
-	removeOnRender(container: Container): void;
-	runOnRender(): void;
-	destroy(): void;
-	getChildren(out?: Container[]): Container[];
-	private _getChildren;
-}
-/**
- * Defines a size with a width and a height.
- * @memberof maths
- */
-export interface Size {
-	/** The width. */
-	width: number;
-	/** The height. */
-	height: number;
-}
-/**
- * Simple bounds implementation instead of more ambiguous [number, number, number, number]
- * @memberof rendering
- */
-export interface BoundsData {
-	minX: number;
-	minY: number;
-	maxX: number;
-	maxY: number;
-}
-/**
- * A representation of an AABB bounding box.
- * @memberof rendering
- */
-export declare class Bounds {
-	/** @default Infinity */
-	minX: number;
-	/** @default Infinity */
-	minY: number;
-	/** @default -Infinity */
-	maxX: number;
-	/** @default -Infinity */
-	maxY: number;
-	matrix: Matrix;
-	private _rectangle;
-	constructor(minX?: number, minY?: number, maxX?: number, maxY?: number);
-	/**
-	 * Checks if bounds are empty.
-	 * @returns - True if empty.
-	 */
-	isEmpty(): boolean;
-	/** The bounding rectangle of the bounds. */
-	get rectangle(): Rectangle;
-	/** Clears the bounds and resets. */
-	clear(): this;
-	/**
-	 * Sets the bounds.
-	 * @param x0 - left X of frame
-	 * @param y0 - top Y of frame
-	 * @param x1 - right X of frame
-	 * @param y1 - bottom Y of frame
-	 */
-	set(x0: number, y0: number, x1: number, y1: number): void;
-	/**
-	 * Adds sprite frame
-	 * @param x0 - left X of frame
-	 * @param y0 - top Y of frame
-	 * @param x1 - right X of frame
-	 * @param y1 - bottom Y of frame
-	 * @param matrix
-	 */
-	addFrame(x0: number, y0: number, x1: number, y1: number, matrix?: Matrix): void;
-	/**
-	 * Adds a rectangle to the bounds.
-	 * @param rect - The rectangle to be added.
-	 * @param matrix - The matrix to apply to the bounds.
-	 */
-	addRect(rect: Rectangle, matrix?: Matrix): void;
-	/**
-	 * Adds other {@link Bounds}.
-	 * @param bounds - The Bounds to be added
-	 * @param matrix
-	 */
-	addBounds(bounds: BoundsData, matrix?: Matrix): void;
-	/**
-	 * Adds other Bounds, masked with Bounds.
-	 * @param mask - The Bounds to be added.
-	 */
-	addBoundsMask(mask: Bounds): void;
-	/**
-	 * Adds other Bounds, multiplied with matrix.
-	 * @param matrix - The matrix to apply to the bounds.
-	 */
-	applyMatrix(matrix: Matrix): void;
-	/**
-	 * Resizes the bounds object to include the given rectangle.
-	 * @param rect - The rectangle to be included.
-	 */
-	fit(rect: Rectangle): this;
-	/**
-	 * Resizes the bounds object to include the given bounds.
-	 * @param left - The left value of the bounds.
-	 * @param right - The right value of the bounds.
-	 * @param top - The top value of the bounds.
-	 * @param bottom - The bottom value of the bounds.
-	 */
-	fitBounds(left: number, right: number, top: number, bottom: number): this;
-	/**
-	 * Pads bounds object, making it grow in all directions.
-	 * If paddingY is omitted, both paddingX and paddingY will be set to paddingX.
-	 * @param paddingX - The horizontal padding amount.
-	 * @param paddingY - The vertical padding amount.
-	 */
-	pad(paddingX: number, paddingY?: number): this;
-	/** Ceils the bounds. */
-	ceil(): this;
-	/** Clones the bounds. */
-	clone(): Bounds;
-	/**
-	 * Scales the bounds by the given values
-	 * @param x - The X value to scale by.
-	 * @param y - The Y value to scale by.
-	 */
-	scale(x: number, y?: number): this;
-	/** the x value of the bounds. */
-	get x(): number;
-	set x(value: number);
-	/** the y value of the bounds. */
-	get y(): number;
-	set y(value: number);
-	/** the width value of the bounds. */
-	get width(): number;
-	set width(value: number);
-	/** the height value of the bounds. */
-	get height(): number;
-	set height(value: number);
-	/** the left value of the bounds. */
-	get left(): number;
-	/** the right value of the bounds. */
-	get right(): number;
-	/** the top value of the bounds. */
-	get top(): number;
-	/** the bottom value of the bounds. */
-	get bottom(): number;
-	/** Is the bounds positive. */
-	get isPositive(): boolean;
-	get isValid(): boolean;
-	/**
-	 * Adds screen vertices from array
-	 * @param vertexData - calculated vertices
-	 * @param beginOffset - begin offset
-	 * @param endOffset - end offset, excluded
-	 * @param matrix
-	 */
-	addVertexData(vertexData: Float32Array, beginOffset: number, endOffset: number, matrix?: Matrix): void;
-	/**
-	 * Checks if the point is contained within the bounds.
-	 * @param x - x coordinate
-	 * @param y - y coordinate
-	 */
-	containsPoint(x: number, y: number): boolean;
-	toString(): string;
-}
-/**
  * Two Pi.
  * @static
  * @member {number}
@@ -1197,10 +947,301 @@ export declare class Rectangle implements ShapePrimitive {
 	toString(): string;
 }
 /**
+ * Simple bounds implementation instead of more ambiguous [number, number, number, number]
+ * @memberof rendering
+ */
+export interface BoundsData {
+	minX: number;
+	minY: number;
+	maxX: number;
+	maxY: number;
+}
+/**
+ * A representation of an AABB bounding box.
+ * @memberof rendering
+ */
+export declare class Bounds {
+	/** @default Infinity */
+	minX: number;
+	/** @default Infinity */
+	minY: number;
+	/** @default -Infinity */
+	maxX: number;
+	/** @default -Infinity */
+	maxY: number;
+	matrix: Matrix;
+	private _rectangle;
+	constructor(minX?: number, minY?: number, maxX?: number, maxY?: number);
+	/**
+	 * Checks if bounds are empty.
+	 * @returns - True if empty.
+	 */
+	isEmpty(): boolean;
+	/** The bounding rectangle of the bounds. */
+	get rectangle(): Rectangle;
+	/** Clears the bounds and resets. */
+	clear(): this;
+	/**
+	 * Sets the bounds.
+	 * @param x0 - left X of frame
+	 * @param y0 - top Y of frame
+	 * @param x1 - right X of frame
+	 * @param y1 - bottom Y of frame
+	 */
+	set(x0: number, y0: number, x1: number, y1: number): void;
+	/**
+	 * Adds sprite frame
+	 * @param x0 - left X of frame
+	 * @param y0 - top Y of frame
+	 * @param x1 - right X of frame
+	 * @param y1 - bottom Y of frame
+	 * @param matrix
+	 */
+	addFrame(x0: number, y0: number, x1: number, y1: number, matrix?: Matrix): void;
+	/**
+	 * Adds a rectangle to the bounds.
+	 * @param rect - The rectangle to be added.
+	 * @param matrix - The matrix to apply to the bounds.
+	 */
+	addRect(rect: Rectangle, matrix?: Matrix): void;
+	/**
+	 * Adds other {@link Bounds}.
+	 * @param bounds - The Bounds to be added
+	 * @param matrix
+	 */
+	addBounds(bounds: BoundsData, matrix?: Matrix): void;
+	/**
+	 * Adds other Bounds, masked with Bounds.
+	 * @param mask - The Bounds to be added.
+	 */
+	addBoundsMask(mask: Bounds): void;
+	/**
+	 * Adds other Bounds, multiplied with matrix.
+	 * @param matrix - The matrix to apply to the bounds.
+	 */
+	applyMatrix(matrix: Matrix): void;
+	/**
+	 * Resizes the bounds object to include the given rectangle.
+	 * @param rect - The rectangle to be included.
+	 */
+	fit(rect: Rectangle): this;
+	/**
+	 * Resizes the bounds object to include the given bounds.
+	 * @param left - The left value of the bounds.
+	 * @param right - The right value of the bounds.
+	 * @param top - The top value of the bounds.
+	 * @param bottom - The bottom value of the bounds.
+	 */
+	fitBounds(left: number, right: number, top: number, bottom: number): this;
+	/**
+	 * Pads bounds object, making it grow in all directions.
+	 * If paddingY is omitted, both paddingX and paddingY will be set to paddingX.
+	 * @param paddingX - The horizontal padding amount.
+	 * @param paddingY - The vertical padding amount.
+	 */
+	pad(paddingX: number, paddingY?: number): this;
+	/** Ceils the bounds. */
+	ceil(): this;
+	/** Clones the bounds. */
+	clone(): Bounds;
+	/**
+	 * Scales the bounds by the given values
+	 * @param x - The X value to scale by.
+	 * @param y - The Y value to scale by.
+	 */
+	scale(x: number, y?: number): this;
+	/** the x value of the bounds. */
+	get x(): number;
+	set x(value: number);
+	/** the y value of the bounds. */
+	get y(): number;
+	set y(value: number);
+	/** the width value of the bounds. */
+	get width(): number;
+	set width(value: number);
+	/** the height value of the bounds. */
+	get height(): number;
+	set height(value: number);
+	/** the left value of the bounds. */
+	get left(): number;
+	/** the right value of the bounds. */
+	get right(): number;
+	/** the top value of the bounds. */
+	get top(): number;
+	/** the bottom value of the bounds. */
+	get bottom(): number;
+	/** Is the bounds positive. */
+	get isPositive(): boolean;
+	get isValid(): boolean;
+	/**
+	 * Adds screen vertices from array
+	 * @param vertexData - calculated vertices
+	 * @param beginOffset - begin offset
+	 * @param endOffset - end offset, excluded
+	 * @param matrix
+	 */
+	addVertexData(vertexData: Float32Array, beginOffset: number, endOffset: number, matrix?: Matrix): void;
+	/**
+	 * Checks if the point is contained within the bounds.
+	 * @param x - x coordinate
+	 * @param y - y coordinate
+	 */
+	containsPoint(x: number, y: number): boolean;
+	toString(): string;
+}
+export interface ViewObserver {
+	onViewUpdate: () => void;
+}
+/**
+ * A view is something that is able to be rendered by the renderer.
+ * @memberof scene
+ */
+export interface View {
+	/** a unique id for this view */
+	readonly uid: number;
+	/** whether or not this view should be batched */
+	batched: boolean;
+	/**
+	 * an identifier that is used to identify the type of system that will be used to render this renderable
+	 * eg, 'sprite' will use the sprite system (based on the systems name
+	 */
+	readonly renderPipeId: string;
+	/** this is an int because it is packed directly into an attribute in the shader */
+	_roundPixels: 0 | 1;
+	/** @private */
+	_lastUsed: number;
+	/** @private */
+	_lastInstructionTick: number;
+	/**
+	 *  Whether or not to round the x/y position of the object.
+	 * @type {boolean}
+	 */
+	get roundPixels(): boolean;
+	/** if true, the view will have its position rounded to the nearest whole number */
+	set roundPixels(value: boolean);
+	/** this is the AABB rectangle bounds of the view in local untransformed space. */
+	bounds: BoundsData;
+	/** Adds the current bounds of this view to the supplied bounds */
+	addBounds: (bounds: Bounds) => void;
+	/** Checks if the point is within the view */
+	containsPoint: (point: Point) => boolean;
+}
+export interface Renderable extends Container, View {
+}
+/**
+ * An instruction that can be executed by the renderer
+ * @memberof rendering
+ */
+export interface Instruction {
+	/** a the id of the render pipe that can run this instruction */
+	renderPipeId: string;
+	/** the name of the instruction */
+	action?: string;
+	/** true if this instruction can be compiled into a WebGPU bundle */
+	canBundle: boolean;
+}
+/**
+ * A set of instructions that can be executed by the renderer.
+ * Basically wraps an array, but with some extra properties that help the renderer
+ * to keep things nice and optimised.
+ *
+ * Note:
+ * InstructionSet.instructions contains all the instructions, but does not resize (for performance).
+ * So for the true length of the instructions you need to use InstructionSet.instructionSize
+ * @memberof rendering
+ */
+export declare class InstructionSet {
+	/** a unique id for this instruction set used through the renderer */
+	readonly uid: number;
+	/** the array of instructions */
+	readonly instructions: Instruction[];
+	/** the actual size of the array (any instructions passed this should be ignored) */
+	instructionSize: number;
+	/** allows for access to the render pipes of the renderer */
+	renderPipes: any;
+	renderables: Renderable[];
+	tick: number;
+	/** reset the instruction set so it can be reused set size back to 0 */
+	reset(): void;
+	/**
+	 * Add an instruction to the set
+	 * @param instruction - add an instruction to the set
+	 */
+	add(instruction: Instruction): void;
+	/**
+	 * Log the instructions to the console (for debugging)
+	 * @internal
+	 * @ignore
+	 */
+	log(): void;
+}
+/**
+ * A RenderGroup is a class that is responsible for I generating a set of instructions that are used to render the
+ * root container and its children. It also watches for any changes in that container or its children,
+ * these changes are analysed and either the instruction set is rebuild or the instructions data is updated.
+ * @memberof rendering
+ */
+export declare class RenderGroup implements Instruction {
+	renderPipeId: string;
+	root: Container;
+	canBundle: boolean;
+	renderGroupParent: RenderGroup;
+	renderGroupChildren: RenderGroup[];
+	worldTransform: Matrix;
+	worldColorAlpha: number;
+	worldColor: number;
+	worldAlpha: number;
+	readonly childrenToUpdate: Record<number, {
+		list: Container[];
+		index: number;
+	}>;
+	updateTick: number;
+	readonly childrenRenderablesToUpdate: {
+		list: Container[];
+		index: number;
+	};
+	structureDidChange: boolean;
+	instructionSet: InstructionSet;
+	private readonly _onRenderContainers;
+	init(root: Container): void;
+	reset(): void;
+	get localTransform(): Matrix;
+	addRenderGroupChild(renderGroupChild: RenderGroup): void;
+	private _removeRenderGroupChild;
+	addChild(child: Container): void;
+	removeChild(child: Container): void;
+	removeChildren(children: Container[]): void;
+	onChildUpdate(child: Container): void;
+	updateRenderable(container: Container): void;
+	onChildViewUpdate(child: Container): void;
+	get isRenderable(): boolean;
+	/**
+	 * adding a container to the onRender list will make sure the user function
+	 * passed in to the user defined 'onRender` callBack
+	 * @param container - the container to add to the onRender list
+	 */
+	addOnRender(container: Container): void;
+	removeOnRender(container: Container): void;
+	runOnRender(): void;
+	destroy(): void;
+	getChildren(out?: Container[]): Container[];
+	private _getChildren;
+}
+/**
+ * Defines a size with a width and a height.
+ * @memberof maths
+ */
+export interface Size {
+	/** The width. */
+	width: number;
+	/** The height. */
+	height: number;
+}
+/**
  * Various blend modes supported by Pixi
  * @memberof filters
  */
-export type BLEND_MODES = "inherit" | "normal" | "add" | "multiply" | "screen" | "darken" | "lighten" | "erase" | "color-dodge" | "color-burn" | "linear-burn" | "linear-dodge" | "linear-light" | "hard-light" | "soft-light" | "pin-light" | "difference" | "exclusion" | "overlay" | "saturation" | "color" | "luminosity" | "normal-npm" | "add-npm" | "screen-npm" | "none" | "subtract" | "divide" | "vivid-light" | "hard-mix" | "negation";
+export type BLEND_MODES = "inherit" | "normal" | "add" | "multiply" | "screen" | "darken" | "lighten" | "erase" | "color-dodge" | "color-burn" | "linear-burn" | "linear-dodge" | "linear-light" | "hard-light" | "soft-light" | "pin-light" | "difference" | "exclusion" | "overlay" | "saturation" | "color" | "luminosity" | "normal-npm" | "add-npm" | "screen-npm" | "none" | "subtract" | "divide" | "vivid-light" | "hard-mix" | "negation" | "min" | "max";
 /**
  * The map of blend modes supported by Pixi
  * @memberof rendering
@@ -1399,8 +1440,6 @@ export interface ContainerOptions<C extends ContainerChild = ContainerChild> ext
 	skew?: PointData;
 	/** @see scene.Container#visible */
 	visible?: boolean;
-	/** @see scene.Container#culled */
-	culled?: boolean;
 	/** @see scene.Container#x */
 	x?: number;
 	/** @see scene.Container#y */
@@ -1607,8 +1646,8 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
 	 * @param source - The source of properties and methods to mix in.
 	 */
 	static mixin(source: Dict<any>): void;
-	/** @private */
-	uid: number;
+	/** unique id for this container */
+	readonly uid: number;
 	/** @private */
 	_updateFlags: number;
 	/** @private */
@@ -1741,7 +1780,7 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
 	 * This property holds three bits: culled, visible, renderable
 	 * the third bit represents culling (0 = culled, 1 = not culled) 0b100
 	 * the second bit represents visibility (0 = not visible, 1 = visible) 0b010
-	 * the first bit represents renderable (0 = renderable, 1 = not renderable) 0b001
+	 * the first bit represents renderable (0 = not renderable, 1 = renderable) 0b001
 	 * @internal
 	 * @ignore
 	 */
@@ -1751,7 +1790,7 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
 	 * @ignore
 	 */
 	globalDisplayStatus: number;
-	renderPipeId: string;
+	readonly renderPipeId: string;
 	/**
 	 * An optional bounds area for this container. Setting this rectangle will stop the renderer
 	 * from recursively measuring the bounds of each children and instead use this single boundArea.
@@ -1761,17 +1800,24 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
 	 */
 	boundsArea: Rectangle;
 	/**
-	 * A value that increments each time the container is modified
-	 * the first 12 bits represent the container changes (eg transform, alpha, visible etc)
-	 * the second 12 bits represent:
-	 *      - for view changes (eg texture swap, geometry change etc)
-	 *      - containers changes (eg children added, removed etc)
-	 *
-	 *  view          container
-	 * [000000000000][00000000000]
+	 * A value that increments each time the containe is modified
+	 * eg children added, removed etc
 	 * @ignore
 	 */
-	_didChangeId: number;
+	_didContainerChangeTick: number;
+	/**
+	 * A value that increments each time the container view is modified
+	 * eg texture swap, geometry change etc
+	 * @ignore
+	 */
+	_didViewChangeTick: number;
+	/**
+	 * We now use the _didContainerChangeTick and _didViewChangeTick to track changes
+	 * @deprecated since 8.2.6
+	 * @ignore
+	 */
+	set _didChangeId(value: number);
+	get _didChangeId(): number;
 	/**
 	 * property that tracks if the container transform has changed
 	 * @ignore
@@ -2931,6 +2977,534 @@ export declare class TextureStyle extends EventEmitter<{
 	destroy(): void;
 }
 /**
+ * Buffer usage flags. they can be combined using the bitwise OR operator
+ * eg : BufferUsage.VERTEX | BufferUsage.INDEX
+ * @memberof rendering
+ */
+export declare enum BufferUsage {
+	/**
+	 * The buffer can be mapped for reading. (Example: calling mapAsync() with GPUMapMode.READ)
+	 * May only be combined with COPY_DST.
+	 */
+	MAP_READ = 1,
+	/**
+	 * The buffer can be mapped for writing. (Example: calling mapAsync() with GPUMapMode.WRITE)
+	 * May only be combined with COPY_SRC.
+	 */
+	MAP_WRITE = 2,
+	/**
+	 * The buffer can be used as the source of a copy operation.
+	 * (Examples: as the source argument of a copyBufferToBuffer() or copyBufferToTexture() call.)
+	 */
+	COPY_SRC = 4,
+	/**
+	 * The buffer can be used as the destination of a copy or write operation.
+	 * (Examples: as the destination argument of a copyBufferToBuffer() or
+	 * copyTextureToBuffer() call, or as the target of a writeBuffer() call.)
+	 */
+	COPY_DST = 8,
+	/** The buffer can be used as an index buffer. (Example: passed to setIndexBuffer().) */
+	INDEX = 16,
+	/** The buffer can be used as a vertex buffer. (Example: passed to setVertexBuffer().) */
+	VERTEX = 32,
+	/**
+	 * The buffer can be used as a uniform buffer.
+	 * (Example: as a bind group entry for a GPUBufferBindingLayout with a buffer.type of "uniform".)
+	 */
+	UNIFORM = 64,
+	/**
+	 * The buffer can be used as a storage buffer.
+	 * (Example: as a bind group entry for a GPUBufferBindingLayout with a buffer.type of "storage" or "read-only-storage".)
+	 */
+	STORAGE = 128,
+	/**
+	 * The buffer can be used as to store indirect command arguments.
+	 * (Examples: as the indirectBuffer argument of a drawIndirect() or dispatchWorkgroupsIndirect() call.)
+	 */
+	INDIRECT = 256,
+	/**
+	 * The buffer can be used to capture query results.
+	 * (Example: as the destination argument of a resolveQuerySet() call.)
+	 */
+	QUERY_RESOLVE = 512,
+	/** the buffer will not be updated frequently */
+	STATIC = 1024
+}
+/** All the various typed arrays that exist in js */
+export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array;
+/** Options for creating a buffer */
+export interface BufferOptions {
+	/**
+	 * the data to initialize the buffer with, this can be a typed array,
+	 * or a regular number array. If it is a number array, it will be converted to a Float32Array
+	 */
+	data?: TypedArray | number[];
+	/** the size of the buffer in bytes, if not supplied, it will be inferred from the data */
+	size?: number;
+	/** the usage of the buffer, see {@link rendering.BufferUsage} */
+	usage: number;
+	/** a label for the buffer, this is useful for debugging */
+	label?: string;
+	/**
+	 * should the GPU buffer be shrunk when the data becomes smaller?
+	 * changing this will cause the buffer to be destroyed and a new one created on the GPU
+	 * this can be expensive, especially if the buffer is already big enough!
+	 * setting this to false will prevent the buffer from being shrunk. This will yield better performance
+	 * if you are constantly setting data that is changing size often.
+	 * @default true
+	 */
+	shrinkToFit?: boolean;
+}
+export interface BufferDescriptor {
+	label?: string;
+	size: GPUSize64;
+	usage: BufferUsage;
+	mappedAtCreation?: boolean;
+}
+/**
+ * A wrapper for a WebGPU/WebGL Buffer.
+ * In PixiJS, the Buffer class is used to manage the data that is sent to the GPU rendering pipeline.
+ * It abstracts away the underlying GPU buffer and provides an interface for uploading typed arrays or other data to the GPU,
+ * They are used in the following places:
+ * <br><br>
+ * .1. {@link Geometry} as attribute data or index data for geometry
+ * <br>
+ * .2. {@link UniformGroup} as an underlying buffer for uniform data
+ * <br>
+ * .3. {@link BufferResource} as an underlying part of a buffer used directly by the GPU program
+ * <br>
+ *
+ * It is important to note that you must provide a usage type when creating a buffer. This is because
+ * the underlying GPU buffer needs to know how it will be used. For example, if you are creating a buffer
+ * to hold vertex data, you would use `BufferUsage.VERTEX`. This will tell the GPU that this buffer will be
+ * used as a vertex buffer. This is important because it will affect how you can use the buffer.
+ *
+ * Buffers are updated by calling the {@link Buffer.update} method. This immediately updates the buffer on the GPU.
+ * Be mindful of calling this more often than you need to. It is recommended to update buffers only when needed.
+ *
+ * In WebGPU, a GPU buffer cannot resized. This limitation is abstracted away, but know that resizing a buffer means
+ * creating a brand new one and destroying the old, so it is best to limit this if possible.
+ * @example
+ *
+ * const buffer = new Buffer({
+ *     data: new Float32Array([1, 2, 3, 4]),
+ *     usage: BufferUsage.VERTEX,
+ * });
+ * @memberof rendering
+ */
+declare class Buffer$1 extends EventEmitter<{
+	change: BindResource;
+	update: Buffer$1;
+	destroy: Buffer$1;
+}> implements BindResource {
+	/**
+	 * emits when the underlying buffer has changed shape (i.e. resized)
+	 * letting the renderer know that it needs to discard the old buffer on the GPU and create a new one
+	 * @event change
+	 */
+	/**
+	 * emits when the underlying buffer data has been updated. letting the renderer know
+	 * that it needs to update the buffer on the GPU
+	 * @event update
+	 */
+	/**
+	 * emits when the buffer is destroyed. letting the renderer know that it needs to destroy the buffer on the GPU
+	 * @event destroy
+	 */
+	/** a unique id for this uniform group used through the renderer */
+	readonly uid: number;
+	/**
+	 * a resource type, used to identify how to handle it when its in a bind group / shader resource
+	 * @internal
+	 * @ignore
+	 */
+	readonly _resourceType = "buffer";
+	/**
+	 * the resource id used internally by the renderer to build bind group keys
+	 * @internal
+	 * @ignore
+	 */
+	_resourceId: number;
+	/**
+	 * used internally to know if a uniform group was used in the last render pass
+	 * @internal
+	 * @ignore
+	 */
+	_touched: number;
+	/**
+	 * a description of the buffer and how it should be set up on the GPU
+	 * @internal
+	 * @ignore
+	 */
+	readonly descriptor: BufferDescriptor;
+	/**
+	 * @internal
+	 * @ignore
+	 */
+	_updateID: number;
+	/**
+	 * @internal
+	 * @ignore
+	 */
+	_updateSize: number;
+	private _data;
+	/**
+	 * should the GPU buffer be shrunk when the data becomes smaller?
+	 * changing this will cause the buffer to be destroyed and a new one created on the GPU
+	 * this can be expensive, especially if the buffer is already big enough!
+	 * setting this to false will prevent the buffer from being shrunk. This will yield better performance
+	 * if you are constantly setting data that is changing size often.
+	 * @default true
+	 */
+	shrinkToFit: boolean;
+	/**
+	 * Has the buffer been destroyed?
+	 * @readonly
+	 */
+	destroyed: boolean;
+	/**
+	 * Creates a new Buffer with the given options
+	 * @param options - the options for the buffer
+	 */
+	constructor(options: BufferOptions);
+	/** the data in the buffer */
+	get data(): TypedArray;
+	set data(value: TypedArray);
+	/** whether the buffer is static or not */
+	get static(): boolean;
+	set static(value: boolean);
+	/**
+	 * Sets the data in the buffer to the given value. This will immediately update the buffer on the GPU.
+	 * If you only want to update a subset of the buffer, you can pass in the size of the data.
+	 * @param value - the data to set
+	 * @param size - the size of the data in bytes
+	 * @param syncGPU - should the buffer be updated on the GPU immediately?
+	 */
+	setDataWithSize(value: TypedArray, size: number, syncGPU: boolean): void;
+	/**
+	 * updates the buffer on the GPU to reflect the data in the buffer.
+	 * By default it will update the entire buffer. If you only want to update a subset of the buffer,
+	 * you can pass in the size of the buffer to update.
+	 * @param sizeInBytes - the new size of the buffer in bytes
+	 */
+	update(sizeInBytes?: number): void;
+	/** Destroys the buffer */
+	destroy(): void;
+}
+export interface BufferSourceOptions extends TextureSourceOptions<TypedArray | ArrayBuffer> {
+	width: number;
+	height: number;
+}
+export declare class BufferImageSource extends TextureSource<TypedArray | ArrayBuffer> {
+	static extension: ExtensionMetadata;
+	uploadMethodId: string;
+	constructor(options: BufferSourceOptions);
+	static test(resource: any): resource is TypedArray | ArrayBuffer;
+}
+export interface CanvasSourceOptions extends TextureSourceOptions<ICanvas> {
+	/** should the canvas be resized to preserve its screen width and height regardless of the resolution of the renderer */
+	autoDensity?: boolean;
+	/** if true, this canvas will be set up to be transparent where possible */
+	transparent?: boolean;
+}
+export declare class CanvasSource extends TextureSource<ICanvas> {
+	static extension: ExtensionMetadata;
+	uploadMethodId: string;
+	autoDensity: boolean;
+	transparent: boolean;
+	constructor(options: CanvasSourceOptions);
+	resizeCanvas(): void;
+	resize(width?: number, height?: number, resolution?: number): boolean;
+	static test(resource: any): resource is ICanvas;
+}
+export type ImageResource = ImageBitmap | HTMLCanvasElement | OffscreenCanvas | ICanvas | VideoFrame | HTMLImageElement | HTMLVideoElement;
+export declare class ImageSource extends TextureSource<ImageResource> {
+	static extension: ExtensionMetadata;
+	uploadMethodId: string;
+	constructor(options: TextureSourceOptions<ImageResource>);
+	static test(resource: any): resource is ImageResource;
+}
+export type TextureResourceOrOptions = ImageResource | TextureSourceOptions<ImageResource> | BufferSourceOptions | CanvasSourceOptions;
+/**
+ * @param options
+ * @deprecated since v8.2.0
+ * @see TextureSource.from
+ */
+export declare function autoDetectSource(options?: TextureResourceOrOptions): TextureSource;
+export declare function resourceToTexture(options?: TextureResourceOrOptions, skipCache?: boolean): Texture;
+/**
+ * Helper function that creates a returns Texture based on the source you provide.
+ * The source should be loaded and ready to go. If not its best to grab the asset using Assets.
+ * @param id - String or Source to create texture from
+ * @param skipCache - Skip adding the texture to the cache
+ * @returns The texture based on the Id provided
+ */
+export declare function textureFrom(id: TextureSourceLike, skipCache?: boolean): Texture;
+/**
+ * options for creating a new TextureSource
+ * @memberof rendering
+ */
+export interface TextureSourceOptions<T extends Record<string, any> = any> extends TextureStyleOptions {
+	/**
+	 * the resource that will be uploaded to the GPU. This is where we get our pixels from
+	 * eg an ImageBimt / Canvas / Video etc
+	 */
+	resource?: T;
+	/** the pixel width of this texture source. This is the REAL pure number, not accounting resolution */
+	width?: number;
+	/** the pixel height of this texture source. This is the REAL pure number, not accounting resolution */
+	height?: number;
+	/** the resolution of the texture. */
+	resolution?: number;
+	/** the format that the texture data has */
+	format?: TEXTURE_FORMATS;
+	/**
+	 * Used by internal textures
+	 * @ignore
+	 */
+	sampleCount?: number;
+	/**
+	 * Only really affects RenderTextures.
+	 * Should we use antialiasing for this texture. It will look better, but may impact performance as a
+	 * Blit operation will be required to resolve the texture.
+	 */
+	antialias?: boolean;
+	/** how many dimensions does this texture have? currently v8 only supports 2d */
+	dimensions?: TEXTURE_DIMENSIONS;
+	/** The number of mip levels to generate for this texture. this is  overridden if autoGenerateMipmaps is true */
+	mipLevelCount?: number;
+	/**
+	 * Should we auto generate mipmaps for this texture? This will automatically generate mipmaps
+	 * for this texture when uploading to the GPU. Mipmapped textures take up more memory, but
+	 * can look better when scaled down.
+	 *
+	 * For performance reasons, it is recommended to NOT use this with RenderTextures, as they are often updated every frame.
+	 * If you do, make sure to call `updateMipmaps` after you update the texture.
+	 */
+	autoGenerateMipmaps?: boolean;
+	/** the alpha mode of the texture */
+	alphaMode?: ALPHA_MODES;
+	/** optional label, can be used for debugging */
+	label?: string;
+	/** If true, the Garbage Collector will unload this texture if it is not used after a period of time */
+	autoGarbageCollect?: boolean;
+}
+/**
+ * A TextureSource stores the information that represents an image.
+ * All textures have require TextureSource, which contains information about the source.
+ * Therefore you can have many textures all using a single TextureSource (eg a sprite sheet)
+ *
+ * This is an class is extended depending on the source of the texture.
+ * Eg if you are using an an image as your resource, then an ImageSource is used.
+ * @memberof rendering
+ * @typeParam T - The TextureSource's Resource type.
+ */
+export declare class TextureSource<T extends Record<string, any> = any> extends EventEmitter<{
+	change: BindResource;
+	update: TextureSource;
+	unload: TextureSource;
+	destroy: TextureSource;
+	resize: TextureSource;
+	styleChange: TextureSource;
+	updateMipmaps: TextureSource;
+	error: Error;
+}> implements BindResource {
+	protected readonly options: TextureSourceOptions<T>;
+	/** The default options used when creating a new TextureSource. override these to add your own defaults */
+	static defaultOptions: TextureSourceOptions;
+	/** unique id for this Texture source */
+	readonly uid: number;
+	/** optional label, can be used for debugging */
+	label: string;
+	/**
+	 * The resource type used by this TextureSource. This is used by the bind groups to determine
+	 * how to handle this resource.
+	 * @ignore
+	 * @internal
+	 */
+	readonly _resourceType = "textureSource";
+	/**
+	 * i unique resource id, used by the bind group systems.
+	 * This can change if the texture is resized or its resource changes
+	 */
+	_resourceId: number;
+	/**
+	 * this is how the backends know how to upload this texture to the GPU
+	 * It changes depending on the resource type. Classes that extend TextureSource
+	 * should override this property.
+	 * @ignore
+	 * @internal
+	 */
+	uploadMethodId: string;
+	_resolution: number;
+	/** the pixel width of this texture source. This is the REAL pure number, not accounting resolution */
+	pixelWidth: number;
+	/** the pixel height of this texture source. This is the REAL pure number, not accounting resolution */
+	pixelHeight: number;
+	/**
+	 * the width of this texture source, accounting for resolution
+	 * eg pixelWidth 200, resolution 2, then width will be 100
+	 */
+	width: number;
+	/**
+	 * the height of this texture source, accounting for resolution
+	 * eg pixelHeight 200, resolution 2, then height will be 100
+	 */
+	height: number;
+	/**
+	 * the resource that will be uploaded to the GPU. This is where we get our pixels from
+	 * eg an ImageBimt / Canvas / Video etc
+	 */
+	resource: T;
+	/**
+	 * The number of samples of a multisample texture. This is always 1 for non-multisample textures.
+	 * To enable multisample for a texture, set antialias to true
+	 * @internal
+	 * @ignore
+	 */
+	sampleCount: number;
+	/** The number of mip levels to generate for this texture. this is  overridden if autoGenerateMipmaps is true */
+	mipLevelCount: number;
+	/**
+	 * Should we auto generate mipmaps for this texture? This will automatically generate mipmaps
+	 * for this texture when uploading to the GPU. Mipmapped textures take up more memory, but
+	 * can look better when scaled down.
+	 *
+	 * For performance reasons, it is recommended to NOT use this with RenderTextures, as they are often updated every frame.
+	 * If you do, make sure to call `updateMipmaps` after you update the texture.
+	 */
+	autoGenerateMipmaps: boolean;
+	/** the format that the texture data has */
+	format: TEXTURE_FORMATS;
+	/** how many dimensions does this texture have? currently v8 only supports 2d */
+	dimension: TEXTURE_DIMENSIONS;
+	/** the alpha mode of the texture */
+	alphaMode: ALPHA_MODES;
+	private _style;
+	/**
+	 * Only really affects RenderTextures.
+	 * Should we use antialiasing for this texture. It will look better, but may impact performance as a
+	 * Blit operation will be required to resolve the texture.
+	 */
+	antialias: boolean;
+	/**
+	 * Has the source been destroyed?
+	 * @readonly
+	 */
+	destroyed: boolean;
+	/**
+	 * Used by automatic texture Garbage Collection, stores last GC tick when it was bound
+	 * @protected
+	 */
+	_touched: number;
+	/**
+	 * Used by the batcher to build texture batches. faster to have the variable here!
+	 * @protected
+	 */
+	_batchTick: number;
+	/**
+	 * A temporary batch location for the texture batching. Here for performance reasons only!
+	 * @protected
+	 */
+	_textureBindLocation: number;
+	isPowerOfTwo: boolean;
+	/** If true, the Garbage Collector will unload this texture if it is not used after a period of time */
+	autoGarbageCollect: boolean;
+	/**
+	 * used internally to know where a texture came from. Usually assigned by the asset loader!
+	 * @ignore
+	 */
+	_sourceOrigin: string;
+	/**
+	 * @param options - options for creating a new TextureSource
+	 */
+	constructor(options?: TextureSourceOptions<T>);
+	/** returns itself */
+	get source(): TextureSource;
+	/** the style of the texture */
+	get style(): TextureStyle;
+	set style(value: TextureStyle);
+	/** setting this will set wrapModeU,wrapModeV and wrapModeW all at once! */
+	get addressMode(): WRAP_MODE;
+	set addressMode(value: WRAP_MODE);
+	/** setting this will set wrapModeU,wrapModeV and wrapModeW all at once! */
+	get repeatMode(): WRAP_MODE;
+	set repeatMode(value: WRAP_MODE);
+	/** Specifies the sampling behavior when the sample footprint is smaller than or equal to one texel. */
+	get magFilter(): SCALE_MODE;
+	set magFilter(value: SCALE_MODE);
+	/** Specifies the sampling behavior when the sample footprint is larger than one texel. */
+	get minFilter(): SCALE_MODE;
+	set minFilter(value: SCALE_MODE);
+	/** Specifies behavior for sampling between mipmap levels. */
+	get mipmapFilter(): SCALE_MODE;
+	set mipmapFilter(value: SCALE_MODE);
+	/** Specifies the minimum and maximum levels of detail, respectively, used internally when sampling a texture. */
+	get lodMinClamp(): number;
+	set lodMinClamp(value: number);
+	/** Specifies the minimum and maximum levels of detail, respectively, used internally when sampling a texture. */
+	get lodMaxClamp(): number;
+	set lodMaxClamp(value: number);
+	private _onStyleChange;
+	/** call this if you have modified the texture outside of the constructor */
+	update(): void;
+	/** Destroys this texture source */
+	destroy(): void;
+	/**
+	 * This will unload the Texture source from the GPU. This will free up the GPU memory
+	 * As soon as it is required fore rendering, it will be re-uploaded.
+	 */
+	unload(): void;
+	/** the width of the resource. This is the REAL pure number, not accounting resolution   */
+	get resourceWidth(): number;
+	/** the height of the resource. This is the REAL pure number, not accounting resolution */
+	get resourceHeight(): number;
+	/**
+	 * the resolution of the texture. Changing this number, will not change the number of pixels in the actual texture
+	 * but will the size of the texture when rendered.
+	 *
+	 * changing the resolution of this texture to 2 for example will make it appear twice as small when rendered (as pixel
+	 * density will have increased)
+	 */
+	get resolution(): number;
+	set resolution(resolution: number);
+	/**
+	 * Resize the texture, this is handy if you want to use the texture as a render texture
+	 * @param width - the new width of the texture
+	 * @param height - the new height of the texture
+	 * @param resolution - the new resolution of the texture
+	 * @returns - if the texture was resized
+	 */
+	resize(width?: number, height?: number, resolution?: number): boolean;
+	/**
+	 * Lets the renderer know that this texture has been updated and its mipmaps should be re-generated.
+	 * This is only important for RenderTexture instances, as standard Texture instances will have their
+	 * mipmaps generated on upload. You should call this method after you make any change to the texture
+	 *
+	 * The reason for this is is can be quite expensive to update mipmaps for a texture. So by default,
+	 * We want you, the developer to specify when this action should happen.
+	 *
+	 * Generally you don't want to have mipmaps generated on Render targets that are changed every frame,
+	 */
+	updateMipmaps(): void;
+	set wrapMode(value: WRAP_MODE);
+	get wrapMode(): WRAP_MODE;
+	set scaleMode(value: SCALE_MODE);
+	/** setting this will set magFilter,minFilter and mipmapFilter all at once!  */
+	get scaleMode(): SCALE_MODE;
+	/**
+	 * Refresh check for isPowerOfTwo texture based on size
+	 * @private
+	 */
+	protected _refreshPOT(): void;
+	static test(_resource: any): any;
+	/**
+	 * A helper function that creates a new TextureSource based on the resource you provide.
+	 * @param resource - The resource to create the texture source from.
+	 */
+	static from: (resource: TextureResourceOrOptions) => TextureSource;
+}
+/**
  * Class controls uv mapping from Texture normal space to BaseTexture normal space.
  *
  * Takes `trim` and `rotate` into account. May contain clamp settings for Meshes and TilingSprite.
@@ -3084,7 +3658,7 @@ export type TextureSourceLike = TextureSource | TextureResourceOrOptions | strin
  *
  * // once Assets has loaded the image it will be available via the from method
  * const sameTexture = Texture.from('assets/image.png');
- * // another way to acces the texture once loaded
+ * // another way to access the texture once loaded
  * const sameAgainTexture = Asset.get('assets/image.png');
  *
  * const sprite1 = new Sprite(texture);
@@ -3124,7 +3698,7 @@ export declare class Texture extends EventEmitter<{
 	/** label used for debugging */
 	label?: string;
 	/** unique id for this texture */
-	uid: number;
+	readonly uid: number;
 	/**
 	 * Has the texture been destroyed?
 	 * @readonly
@@ -3191,7 +3765,7 @@ export declare class Texture extends EventEmitter<{
 	/** is it a texture? yes! used for type checking */
 	readonly isTexture = true;
 	/**
-	 * @param {TextureOptions} param0 - Options for the texture
+	 * @param {rendering.TextureOptions} options - Options for the texture
 	 */
 	constructor({ source, label, frame, orig, trim, defaultAnchor, defaultBorders, rotate, dynamic }?: TextureOptions);
 	set source(value: TextureSource);
@@ -3220,536 +3794,20 @@ export declare class Texture extends EventEmitter<{
 	static WHITE: Texture;
 }
 /**
- * Buffer usage flags. they can be combined using the bitwise OR operator
- * eg : BufferUsage.VERTEX | BufferUsage.INDEX
+ * A render texture, extends `Texture`.
+ * @see {@link rendering.Texture}
  * @memberof rendering
  */
-export declare enum BufferUsage {
+export declare class RenderTexture extends Texture {
+	static create(options: TextureSourceOptions): RenderTexture;
 	/**
-	 * The buffer can be mapped for reading. (Example: calling mapAsync() with GPUMapMode.READ)
-	 * May only be combined with COPY_DST.
+	 * Resizes the render texture.
+	 * @param width - The new width of the render texture.
+	 * @param height - The new height of the render texture.
+	 * @param resolution - The new resolution of the render texture.
+	 * @returns This texture.
 	 */
-	MAP_READ = 1,
-	/**
-	 * The buffer can be mapped for writing. (Example: calling mapAsync() with GPUMapMode.WRITE)
-	 * May only be combined with COPY_SRC.
-	 */
-	MAP_WRITE = 2,
-	/**
-	 * The buffer can be used as the source of a copy operation.
-	 * (Examples: as the source argument of a copyBufferToBuffer() or copyBufferToTexture() call.)
-	 */
-	COPY_SRC = 4,
-	/**
-	 * The buffer can be used as the destination of a copy or write operation.
-	 * (Examples: as the destination argument of a copyBufferToBuffer() or
-	 * copyTextureToBuffer() call, or as the target of a writeBuffer() call.)
-	 */
-	COPY_DST = 8,
-	/** The buffer can be used as an index buffer. (Example: passed to setIndexBuffer().) */
-	INDEX = 16,
-	/** The buffer can be used as a vertex buffer. (Example: passed to setVertexBuffer().) */
-	VERTEX = 32,
-	/**
-	 * The buffer can be used as a uniform buffer.
-	 * (Example: as a bind group entry for a GPUBufferBindingLayout with a buffer.type of "uniform".)
-	 */
-	UNIFORM = 64,
-	/**
-	 * The buffer can be used as a storage buffer.
-	 * (Example: as a bind group entry for a GPUBufferBindingLayout with a buffer.type of "storage" or "read-only-storage".)
-	 */
-	STORAGE = 128,
-	/**
-	 * The buffer can be used as to store indirect command arguments.
-	 * (Examples: as the indirectBuffer argument of a drawIndirect() or dispatchWorkgroupsIndirect() call.)
-	 */
-	INDIRECT = 256,
-	/**
-	 * The buffer can be used to capture query results.
-	 * (Example: as the destination argument of a resolveQuerySet() call.)
-	 */
-	QUERY_RESOLVE = 512,
-	/** the buffer will not be updated frequently */
-	STATIC = 1024
-}
-/** All the various typed arrays that exist in js */
-export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array;
-/** Options for creating a buffer */
-export interface BufferOptions {
-	/**
-	 * the data to initialize the buffer with, this can be a typed array,
-	 * or a regular number array. If it is a number array, it will be converted to a Float32Array
-	 */
-	data?: TypedArray | number[];
-	/** the size of the buffer in bytes, if not supplied, it will be inferred from the data */
-	size?: number;
-	/** the usage of the buffer, see {@link rendering.BufferUsage} */
-	usage: number;
-	/** a label for the buffer, this is useful for debugging */
-	label?: string;
-	/**
-	 * should the GPU buffer be shrunk when the data becomes smaller?
-	 * changing this will cause the buffer to be destroyed and a new one created on the GPU
-	 * this can be expensive, especially if the buffer is already big enough!
-	 * setting this to false will prevent the buffer from being shrunk. This will yield better performance
-	 * if you are constantly setting data that is changing size often.
-	 * @default true
-	 */
-	shrinkToFit?: boolean;
-}
-export interface BufferDescriptor {
-	label?: string;
-	size: GPUSize64;
-	usage: BufferUsage;
-	mappedAtCreation?: boolean;
-}
-/**
- * A wrapper for a WebGPU/WebGL Buffer.
- * In PixiJS, the Buffer class is used to manage the data that is sent to the GPU rendering pipeline.
- * It abstracts away the underlying GPU buffer and provides an interface for uploading typed arrays or other data to the GPU,
- * They are used in the following places:
- * <br><br>
- * .1. {@link Geometry} as attribute data or index data for geometry
- * <br>
- * .2. {@link UniformGroup} as an underlying buffer for uniform data
- * <br>
- * .3. {@link BufferResource} as an underlying part of a buffer used directly by the GPU program
- * <br>
- *
- * It is important to note that you must provide a usage type when creating a buffer. This is because
- * the underlying GPU buffer needs to know how it will be used. For example, if you are creating a buffer
- * to hold vertex data, you would use `BufferUsage.VERTEX`. This will tell the GPU that this buffer will be
- * used as a vertex buffer. This is important because it will affect how you can use the buffer.
- *
- * Buffers are updated by calling the {@link Buffer.update} method. This immediately updates the buffer on the GPU.
- * Be mindful of calling this more often than you need to. It is recommended to update buffers only when needed.
- *
- * In WebGPU, a GPU buffer cannot resized. This limitation is abstracted away, but know that resizing a buffer means
- * creating a brand new one and destroying the old, so it is best to limit this if possible.
- * @example
- *
- * const buffer = new Buffer({
- *     data: new Float32Array([1, 2, 3, 4]),
- *     usage: BufferUsage.VERTEX,
- * });
- * @memberof rendering
- */
-declare class Buffer$1 extends EventEmitter<{
-	change: BindResource;
-	update: Buffer$1;
-	destroy: Buffer$1;
-}> implements BindResource {
-	/**
-	 * emits when the underlying buffer has changed shape (i.e. resized)
-	 * letting the renderer know that it needs to discard the old buffer on the GPU and create a new one
-	 * @event change
-	 */
-	/**
-	 * emits when the underlying buffer data has been updated. letting the renderer know
-	 * that it needs to update the buffer on the GPU
-	 * @event update
-	 */
-	/**
-	 * emits when the buffer is destroyed. letting the renderer know that it needs to destroy the buffer on the GPU
-	 * @event destroy
-	 */
-	/**
-	 * a unique id for this uniform group used through the renderer
-	 * @internal
-	 * @ignore
-	 */
-	readonly uid: number;
-	/**
-	 * a resource type, used to identify how to handle it when its in a bind group / shader resource
-	 * @internal
-	 * @ignore
-	 */
-	readonly _resourceType = "buffer";
-	/**
-	 * the resource id used internally by the renderer to build bind group keys
-	 * @internal
-	 * @ignore
-	 */
-	_resourceId: number;
-	/**
-	 * used internally to know if a uniform group was used in the last render pass
-	 * @internal
-	 * @ignore
-	 */
-	_touched: number;
-	/**
-	 * a description of the buffer and how it should be set up on the GPU
-	 * @internal
-	 * @ignore
-	 */
-	readonly descriptor: BufferDescriptor;
-	/**
-	 * @internal
-	 * @ignore
-	 */
-	_updateID: number;
-	/**
-	 * @internal
-	 * @ignore
-	 */
-	_updateSize: number;
-	private _data;
-	/**
-	 * should the GPU buffer be shrunk when the data becomes smaller?
-	 * changing this will cause the buffer to be destroyed and a new one created on the GPU
-	 * this can be expensive, especially if the buffer is already big enough!
-	 * setting this to false will prevent the buffer from being shrunk. This will yield better performance
-	 * if you are constantly setting data that is changing size often.
-	 * @default true
-	 */
-	shrinkToFit: boolean;
-	/**
-	 * Has the buffer been destroyed?
-	 * @readonly
-	 */
-	destroyed: boolean;
-	/**
-	 * Creates a new Buffer with the given options
-	 * @param options - the options for the buffer
-	 */
-	constructor(options: BufferOptions);
-	/** the data in the buffer */
-	get data(): TypedArray;
-	set data(value: TypedArray);
-	/** whether the buffer is static or not */
-	get static(): boolean;
-	set static(value: boolean);
-	/**
-	 * Sets the data in the buffer to the given value. This will immediately update the buffer on the GPU.
-	 * If you only want to update a subset of the buffer, you can pass in the size of the data.
-	 * @param value - the data to set
-	 * @param size - the size of the data in bytes
-	 * @param syncGPU - should the buffer be updated on the GPU immediately?
-	 */
-	setDataWithSize(value: TypedArray, size: number, syncGPU: boolean): void;
-	/**
-	 * updates the buffer on the GPU to reflect the data in the buffer.
-	 * By default it will update the entire buffer. If you only want to update a subset of the buffer,
-	 * you can pass in the size of the buffer to update.
-	 * @param sizeInBytes - the new size of the buffer in bytes
-	 */
-	update(sizeInBytes?: number): void;
-	/** Destroys the buffer */
-	destroy(): void;
-}
-export interface BufferSourceOptions extends TextureSourceOptions<TypedArray | ArrayBuffer> {
-	width: number;
-	height: number;
-}
-export declare class BufferImageSource extends TextureSource<TypedArray | ArrayBuffer> {
-	static extension: ExtensionMetadata;
-	uploadMethodId: string;
-	constructor(options: BufferSourceOptions);
-	static test(resource: any): resource is TypedArray | ArrayBuffer;
-}
-export interface CanvasSourceOptions extends TextureSourceOptions<ICanvas> {
-	/** should the canvas be resized to preserve its screen width and height regardless of the resolution of the renderer */
-	autoDensity?: boolean;
-	/** if true, this canvas will be set up to be transparent where possible */
-	transparent?: boolean;
-}
-export declare class CanvasSource extends TextureSource<ICanvas> {
-	static extension: ExtensionMetadata;
-	uploadMethodId: string;
-	autoDensity: boolean;
-	transparent: boolean;
-	constructor(options: CanvasSourceOptions);
-	resizeCanvas(): void;
-	resize(width?: number, height?: number, resolution?: number): boolean;
-	static test(resource: any): resource is ICanvas;
-}
-export type ImageResource = ImageBitmap | HTMLCanvasElement | OffscreenCanvas | ICanvas | VideoFrame | HTMLImageElement | HTMLVideoElement;
-export declare class ImageSource extends TextureSource<ImageResource> {
-	static extension: ExtensionMetadata;
-	uploadMethodId: string;
-	constructor(options: TextureSourceOptions<ImageResource>);
-	static test(resource: any): resource is ImageResource;
-}
-export type TextureResourceOrOptions = ImageResource | TextureSourceOptions<ImageResource> | BufferSourceOptions | CanvasSourceOptions;
-/**
- * @param options
- * @deprecated since v8.2.0
- * @see TextureSource.from
- */
-export declare function autoDetectSource(options?: TextureResourceOrOptions): TextureSource;
-export declare function resourceToTexture(options?: TextureResourceOrOptions, skipCache?: boolean): Texture;
-/**
- * Helper function that creates a returns Texture based on the source you provide.
- * The source should be loaded and ready to go. If not its best to grab the asset using Assets.
- * @param id - String or Source to create texture from
- * @param skipCache - Skip adding the texture to the cache
- * @returns The texture based on the Id provided
- */
-export declare function textureFrom(id: TextureSourceLike, skipCache?: boolean): Texture;
-/**
- * options for creating a new TextureSource
- * @memberof rendering
- */
-export interface TextureSourceOptions<T extends Record<string, any> = any> extends TextureStyleOptions {
-	/**
-	 * the resource that will be upladed to the GPU. This is where we get our pixels from
-	 * eg an ImageBimt / Canvas / Video etc
-	 */
-	resource?: T;
-	/** the pixel width of this texture source. This is the REAL pure number, not accounting resolution */
-	width?: number;
-	/** the pixel height of this texture source. This is the REAL pure number, not accounting resolution */
-	height?: number;
-	/** the resolution of the texture. */
-	resolution?: number;
-	/** the format that the texture data has */
-	format?: TEXTURE_FORMATS;
-	/**
-	 * Used by internal textures
-	 * @ignore
-	 */
-	sampleCount?: number;
-	/**
-	 * Only really affects RenderTextures.
-	 * Should we use antialiasing for this texture. It will look better, but may impact performance as a
-	 * Blit operation will be required to resolve the texture.
-	 */
-	antialias?: boolean;
-	/** how many dimensions does this texture have? currently v8 only supports 2d */
-	dimensions?: TEXTURE_DIMENSIONS;
-	/** The number of mip levels to generate for this texture. this is  overridden if autoGenerateMipmaps is true */
-	mipLevelCount?: number;
-	/**
-	 * Should we auto generate mipmaps for this texture? This will automatically generate mipmaps
-	 * for this texture when uploading to the GPU. Mipmapped textures take up more memory, but
-	 * can look better when scaled down.
-	 *
-	 * For performance reasons, it is recommended to NOT use this with RenderTextures, as they are often updated every frame.
-	 * If you do, make sure to call `updateMipmaps` after you update the texture.
-	 */
-	autoGenerateMipmaps?: boolean;
-	/** the alpha mode of the texture */
-	alphaMode?: ALPHA_MODES;
-	/** optional label, can be used for debugging */
-	label?: string;
-	/** If true, the Garbage Collector will unload this texture if it is not used after a period of time */
-	autoGarbageCollect?: boolean;
-}
-/**
- * A TextureSource stores the information that represents an image.
- * All textures have require TextureSource, which contains information about the source.
- * Therefore you can have many textures all using a single TextureSource (eg a sprite sheet)
- *
- * This is an class is extended depending on the source of the texture.
- * Eg if you are using an an image as your resource, then an ImageSource is used.
- * @memberof rendering
- * @typeParam T - The TextureSource's Resource type.
- */
-export declare class TextureSource<T extends Record<string, any> = any> extends EventEmitter<{
-	change: BindResource;
-	update: TextureSource;
-	unload: TextureSource;
-	destroy: TextureSource;
-	resize: TextureSource;
-	styleChange: TextureSource;
-	updateMipmaps: TextureSource;
-	error: Error;
-}> implements BindResource {
-	protected readonly options: TextureSourceOptions<T>;
-	/** The default options used when creating a new TextureSource. override these to add your own defaults */
-	static defaultOptions: TextureSourceOptions;
-	/** unique id for this Texture source */
-	readonly uid: number;
-	/** optional label, can be used for debugging */
-	label: string;
-	/**
-	 * The resource type used by this TextureSource. This is used by the bind groups to determine
-	 * how to handle this resource.
-	 * @ignore
-	 * @internal
-	 */
-	readonly _resourceType = "textureSource";
-	/**
-	 * i unique resource id, used by the bind group systems.
-	 * This can change if the texture is resized or its resource changes
-	 */
-	_resourceId: number;
-	/**
-	 * this is how the backends know how to upload this texture to the GPU
-	 * It changes depending on the resource type. Classes that extend TextureSource
-	 * should override this property.
-	 * @ignore
-	 * @internal
-	 */
-	uploadMethodId: string;
-	_resolution: number;
-	/** the pixel width of this texture source. This is the REAL pure number, not accounting resolution */
-	pixelWidth: number;
-	/** the pixel height of this texture source. This is the REAL pure number, not accounting resolution */
-	pixelHeight: number;
-	/**
-	 * the width of this texture source, accounting for resolution
-	 * eg pixelWidth 200, resolution 2, then width will be 100
-	 */
-	width: number;
-	/**
-	 * the height of this texture source, accounting for resolution
-	 * eg pixelHeight 200, resolution 2, then height will be 100
-	 */
-	height: number;
-	/**
-	 * the resource that will be upladed to the GPU. This is where we get our pixels from
-	 * eg an ImageBimt / Canvas / Video etc
-	 */
-	resource: T;
-	/**
-	 * The number of samples of a multisample texture. This is always 1 for non-multisample textures.
-	 * To enable multisample for a texture, set antialias to true
-	 * @internal
-	 * @ignore
-	 */
-	sampleCount: number;
-	/** The number of mip levels to generate for this texture. this is  overridden if autoGenerateMipmaps is true */
-	mipLevelCount: number;
-	/**
-	 * Should we auto generate mipmaps for this texture? This will automatically generate mipmaps
-	 * for this texture when uploading to the GPU. Mipmapped textures take up more memory, but
-	 * can look better when scaled down.
-	 *
-	 * For performance reasons, it is recommended to NOT use this with RenderTextures, as they are often updated every frame.
-	 * If you do, make sure to call `updateMipmaps` after you update the texture.
-	 */
-	autoGenerateMipmaps: boolean;
-	/** the format that the texture data has */
-	format: TEXTURE_FORMATS;
-	/** how many dimensions does this texture have? currently v8 only supports 2d */
-	dimension: TEXTURE_DIMENSIONS;
-	/** the alpha mode of the texture */
-	alphaMode: ALPHA_MODES;
-	private _style;
-	/**
-	 * Only really affects RenderTextures.
-	 * Should we use antialiasing for this texture. It will look better, but may impact performance as a
-	 * Blit operation will be required to resolve the texture.
-	 */
-	antialias: boolean;
-	/**
-	 * Has the source been destroyed?
-	 * @readonly
-	 */
-	destroyed: boolean;
-	/**
-	 * Used by automatic texture Garbage Collection, stores last GC tick when it was bound
-	 * @protected
-	 */
-	_touched: number;
-	/**
-	 * Used by the batcher to build texture batches. faster to have the variable here!
-	 * @protected
-	 */
-	_batchTick: number;
-	/**
-	 * A temporary batch location for the texture batching. Here for performance reasons only!
-	 * @protected
-	 */
-	_textureBindLocation: number;
-	isPowerOfTwo: boolean;
-	/** If true, the Garbage Collector will unload this texture if it is not used after a period of time */
-	autoGarbageCollect: boolean;
-	/**
-	 * used internally to know where a texture came from. Usually assigned by the asset loader!
-	 * @ignore
-	 */
-	_sourceOrigin: string;
-	/**
-	 * @param options - options for creating a new TextureSource
-	 */
-	constructor(options?: TextureSourceOptions<T>);
-	/** returns itself */
-	get source(): TextureSource;
-	/** the style of the texture */
-	get style(): TextureStyle;
-	set style(value: TextureStyle);
-	/** setting this will set wrapModeU,wrapModeV and wrapModeW all at once! */
-	get addressMode(): WRAP_MODE;
-	set addressMode(value: WRAP_MODE);
-	/** setting this will set wrapModeU,wrapModeV and wrapModeW all at once! */
-	get repeatMode(): WRAP_MODE;
-	set repeatMode(value: WRAP_MODE);
-	/** Specifies the sampling behavior when the sample footprint is smaller than or equal to one texel. */
-	get magFilter(): SCALE_MODE;
-	set magFilter(value: SCALE_MODE);
-	/** Specifies the sampling behavior when the sample footprint is larger than one texel. */
-	get minFilter(): SCALE_MODE;
-	set minFilter(value: SCALE_MODE);
-	/** Specifies behavior for sampling between mipmap levels. */
-	get mipmapFilter(): SCALE_MODE;
-	set mipmapFilter(value: SCALE_MODE);
-	/** Specifies the minimum and maximum levels of detail, respectively, used internally when sampling a texture. */
-	get lodMinClamp(): number;
-	set lodMinClamp(value: number);
-	/** Specifies the minimum and maximum levels of detail, respectively, used internally when sampling a texture. */
-	get lodMaxClamp(): number;
-	set lodMaxClamp(value: number);
-	private _onStyleChange;
-	/** call this if you have modified the texture outside of the constructor */
-	update(): void;
-	/** Destroys this texture source */
-	destroy(): void;
-	/**
-	 * This will unload the Texture source from the GPU. This will free up the GPU memory
-	 * As soon as it is required fore rendering, it will be re-uploaded.
-	 */
-	unload(): void;
-	/** the width of the resource. This is the REAL pure number, not accounting resolution   */
-	get resourceWidth(): number;
-	/** the height of the resource. This is the REAL pure number, not accounting resolution */
-	get resourceHeight(): number;
-	/**
-	 * the resolution of the texture. Changing this number, will not change the number of pixels in the actual texture
-	 * but will the size of the texture when rendered.
-	 *
-	 * changing the resolution of this texture to 2 for example will make it appear twice as small when rendered (as pixel
-	 * density will have increased)
-	 */
-	get resolution(): number;
-	set resolution(resolution: number);
-	/**
-	 * Resize the texture, this is handy if you want to use the texture as a render texture
-	 * @param width - the new width of the texture
-	 * @param height - the new height of the texture
-	 * @param resolution - the new resolution of the texture
-	 * @returns - if the texture was resized
-	 */
-	resize(width?: number, height?: number, resolution?: number): boolean;
-	/**
-	 * Lets the renderer know that this texture has been updated and its mipmaps should be re-generated.
-	 * This is only important for RenderTexture instances, as standard Texture instances will have their
-	 * mipmaps generated on upload. You should call this method after you make any change to the texture
-	 *
-	 * The reason for this is is can be quite expensive to update mipmaps for a texture. So by default,
-	 * We want you, the developer to specify when this action should happen.
-	 *
-	 * Generally you don't want to have mipmaps generated on Render targets that are changed every frame,
-	 */
-	updateMipmaps(): void;
-	set wrapMode(value: WRAP_MODE);
-	get wrapMode(): WRAP_MODE;
-	set scaleMode(value: SCALE_MODE);
-	/** setting this will set magFilter,minFilter and mipmapFilter all at once!  */
-	get scaleMode(): SCALE_MODE;
-	/**
-	 * Refresh check for isPowerOfTwo texture based on size
-	 * @private
-	 */
-	protected _refreshPOT(): void;
-	static test(_resource: any): any;
-	/**
-	 * A helper function that creates a new TextureSource based on the resource you provide.
-	 * @param resource - The resource to create the texture source from.
-	 */
-	static from: (resource: TextureResourceOrOptions) => TextureSource;
+	resize(width: number, height: number, resolution?: number): this;
 }
 export type GenerateTextureSourceOptions = Omit<TextureSourceOptions, "resource" | "width" | "height" | "resolution">;
 /**
@@ -3802,7 +3860,7 @@ export declare class GenerateTextureSystem implements System$1 {
 	 * @param {GenerateTextureSourceOptions} [options.textureSourceOptions] - Texture options for GPU.
 	 * @returns a shiny new texture of the container passed in
 	 */
-	generateTexture(options: GenerateTextureOptions | Container): Texture;
+	generateTexture(options: GenerateTextureOptions | Container): RenderTexture;
 	destroy(): void;
 }
 /**
@@ -3922,8 +3980,6 @@ export interface Attribute {
 	buffer: Buffer$1;
 	/** the format of the attribute */
 	format?: VertexFormat;
-	/** set where the shader location is for this attribute */
-	location?: number;
 	/** the stride of the data in the buffer*/
 	stride?: number;
 	/** the offset of the attribute from the buffer, defaults to 0 */
@@ -4109,6 +4165,8 @@ export interface BatcherOptions {
 	vertexSize?: number;
 	/** The size of the index buffer. */
 	indexSize?: number;
+	/** The maximum number of textures per batch. */
+	maxTextures?: number;
 }
 /**
  * A batcher is used to batch together objects with the same texture.
@@ -4116,7 +4174,8 @@ export interface BatcherOptions {
  */
 export declare class Batcher {
 	static defaultOptions: BatcherOptions;
-	uid: number;
+	/** unique id for this batcher */
+	readonly uid: number;
 	attributeBuffer: ViewableBuffer;
 	indexBuffer: IndexBufferArray;
 	attributeSize: number;
@@ -4128,13 +4187,10 @@ export declare class Batcher {
 	batches: Batch[];
 	private readonly _vertexSize;
 	private _elements;
-	private readonly _batchPool;
-	private _batchPoolIndex;
-	private readonly _textureBatchPool;
-	private _textureBatchPoolIndex;
 	private _batchIndexStart;
 	private _batchIndexSize;
-	private readonly _maxTextures;
+	/** The maximum number of textures per batch. */
+	readonly maxTextures: number;
 	constructor(options?: BatcherOptions);
 	begin(): void;
 	add(batchableObject: BatchableObject): void;
@@ -4161,41 +4217,6 @@ export declare class Batcher {
 	private _resizeAttributeBuffer;
 	private _resizeIndexBuffer;
 	destroy(): void;
-}
-export interface ViewObserver {
-	onViewUpdate: () => void;
-}
-/**
- * A view is something that is able to be rendered by the renderer.
- * @memberof scene
- */
-export interface View {
-	/** a unique id for this view */
-	uid: number;
-	/** whether or not this view should be batched */
-	batched: boolean;
-	/**
-	 * an identifier that is used to identify the type of system that will be used to render this renderable
-	 * eg, 'sprite' will use the sprite system (based on the systems name
-	 */
-	renderPipeId: string;
-	/** this is an int because it is packed directly into an attribute in the shader */
-	_roundPixels: 0 | 1;
-	/**
-	 *  Whether or not to round the x/y position of the object.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	/** if true, the view will have its position rounded to the nearest whole number */
-	set roundPixels(value: boolean);
-	/** this is the AABB rectangle bounds of the view in local untransformed space. */
-	bounds: BoundsData;
-	/** Adds the current bounds of this view to the supplied bounds */
-	addBounds: (bounds: Bounds) => void;
-	/** Checks if the point is within the view */
-	containsPoint: (point: Point) => boolean;
-}
-export interface Renderable extends Container, View {
 }
 /**
  * An interface for a pipe that can be used to build instructions for the renderer.
@@ -4264,24 +4285,22 @@ export interface RenderPipe<RENDERABLE = Renderable> {
 	 * This is only called in the render loop if the instructions set is being reused
 	 * from the last frame. Otherwise addRenderable is called.
 	 * @param renderable - the renderable that needs to be rendered
-	 * @param instructionSet - the instruction set currently being built
 	 */
-	updateRenderable: (renderable: RENDERABLE, instructionSet?: InstructionSet) => void;
+	updateRenderable: (renderable: RENDERABLE) => void;
 	/**
 	 * Called whenever a renderable is destroyed, often the pipes keep a webGL / webGPU specific representation
 	 * of the renderable that needs to be tidied up when the renderable is destroyed.
 	 * @param renderable - the renderable that needs to be rendered
-	 * @returns
 	 */
 	destroyRenderable: (renderable: RENDERABLE) => void;
 	/**
 	 * This function is called when the renderer is determining if it can use the same instruction set again to
-	 * improve performance. If this function returns false, the renderer will rebuild the whole instruction set
+	 * improve performance. If this function returns true, the renderer will rebuild the whole instruction set
 	 * for the scene. This is only called if the scene has not its changed its structure .
 	 * @param renderable
-	 * @returns
+	 * @returns {boolean}
 	 */
-	validateRenderable?: (renderable: RENDERABLE) => boolean;
+	validateRenderable: (renderable: RENDERABLE) => boolean;
 }
 /**
  * An interface for a pipe that can be used to build instructions for the renderer.
@@ -4291,9 +4310,8 @@ export interface BatchPipe {
 	/**
 	 * Add a add a batchable object to the batch.
 	 * @param renderable - a batchable object that can be added to the batch
-	 * @param instructionSet - the instruction set currently being built
 	 */
-	addToBatch: (renderable: BatchableObject, instructionSet: InstructionSet) => void;
+	addToBatch: (renderable: BatchableObject) => void;
 	/**
 	 * Forces the batch to break. This can happen if for example you need to render everything and then
 	 * change the render target.
@@ -4341,7 +4359,8 @@ export interface RenderTargetOptions {
 export declare class RenderTarget {
 	/** The default options for a render target */
 	static defaultOptions: RenderTargetOptions;
-	uid: number;
+	/** unique id for this render target */
+	readonly uid: number;
 	/**
 	 * An array of textures that can be written to by the GPU - mostly this has one texture in Pixi, but you could
 	 * write to multiple if required! (eg deferred lighting)
@@ -4818,6 +4837,8 @@ export declare class RenderContainer extends Container implements View, Instruct
 	 */
 	roundPixels: boolean;
 	_roundPixels: 0 | 1;
+	_lastUsed: number;
+	_lastInstructionTick: number;
 	/**
 	 * The local bounds of the sprite.
 	 * @type {rendering.Bounds}
@@ -4834,13 +4855,13 @@ export declare class RenderContainer extends Container implements View, Instruct
 	 */
 	addBounds: (bounds: Bounds) => void;
 	canBundle: boolean;
-	renderPipeId: string;
+	readonly renderPipeId: string;
 	/**
 	 * @param options - The options for the container.
 	 */
 	constructor(options: RenderContainerOptions | RenderFunction);
 	/**
-	 * An overrideable function that can be used to render the object using the current renderer.
+	 * An overridable function that can be used to render the object using the current renderer.
 	 * @param _renderer - The current renderer
 	 */
 	render(_renderer: Renderer): void;
@@ -4912,6 +4933,52 @@ export declare class RenderGroupSystem implements System$1 {
 	destroy(): void;
 }
 /**
+ * A ViewContainer is a type of container that represents a view.
+ * This view can be a Sprite, a Graphics object, or any other object that can be rendered.
+ * This class is abstract and should not be used directly.
+ * @memberof scene
+ */
+export declare abstract class ViewContainer extends Container implements View {
+	/** @private */
+	readonly renderPipeId: string;
+	/** @private */
+	readonly canBundle = true;
+	/** @private */
+	allowChildren: boolean;
+	/** @private */
+	_roundPixels: 0 | 1;
+	/** @private */
+	_lastUsed: number;
+	/** @private */
+	_lastInstructionTick: number;
+	protected _bounds: Bounds;
+	protected _boundsDirty: boolean;
+	/**
+	 * The local bounds of the view.
+	 * @type {rendering.Bounds}
+	 */
+	abstract get bounds(): BoundsData;
+	/** @private */
+	abstract addBounds(bounds: Bounds): void;
+	/** @private */
+	protected _updateBounds(): void;
+	/**
+	 * Whether or not to round the x/y position of the sprite.
+	 * @type {boolean}
+	 */
+	get roundPixels(): boolean;
+	set roundPixels(value: boolean);
+	/**
+	 * Checks if the object contains the given point.
+	 * @param point - The point to check
+	 */
+	containsPoint(point: PointData): boolean;
+	/** @private */
+	abstract batched: boolean;
+	/** @private */
+	protected abstract onViewUpdate(): void;
+}
+/**
  * Options for the {@link scene.Sprite} constructor.
  * @memberof scene
  */
@@ -4947,9 +5014,7 @@ export interface SpriteOptions extends ContainerOptions {
  * @memberof scene
  * @extends scene.Container
  */
-export declare class Sprite extends Container implements View {
-	private _width;
-	private _height;
+export declare class Sprite extends ViewContainer {
 	/**
 	 * Helper function that creates a new sprite based on the source you provide.
 	 * The source can be - frame id, image, video, canvas element, video element, texture
@@ -4958,16 +5023,15 @@ export declare class Sprite extends Container implements View {
 	 * @returns The newly created sprite
 	 */
 	static from(source: Texture | TextureSourceLike, skipCache?: boolean): Sprite;
-	readonly renderPipeId = "sprite";
+	readonly renderPipeId: string;
 	batched: boolean;
 	readonly _anchor: ObservablePoint;
 	_texture: Texture;
 	_didSpriteUpdate: boolean;
-	private readonly _bounds;
 	private readonly _sourceBounds;
-	private _boundsDirty;
 	private _sourceBoundsDirty;
-	_roundPixels: 0 | 1;
+	private _width;
+	private _height;
 	/**
 	 * @param options - The options for creating the sprite.
 	 */
@@ -4979,7 +5043,7 @@ export declare class Sprite extends Container implements View {
 	 * The local bounds of the sprite.
 	 * @type {rendering.Bounds}
 	 */
-	get bounds(): BoundsData;
+	get bounds(): Bounds;
 	/**
 	 * The bounds of the sprite, taking the texture's trim into account.
 	 * @type {rendering.Bounds}
@@ -4996,7 +5060,7 @@ export declare class Sprite extends Container implements View {
 	 */
 	addBounds(bounds: Bounds): void;
 	onViewUpdate(): void;
-	private _updateBounds;
+	protected _updateBounds(): void;
 	private _updateSourceBounds;
 	/**
 	 * Destroys this sprite renderable and optionally its texture.
@@ -5025,12 +5089,6 @@ export declare class Sprite extends Container implements View {
 	 */
 	get anchor(): ObservablePoint;
 	set anchor(value: PointData | number);
-	/**
-	 *  Whether or not to round the x/y position of the sprite.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	set roundPixels(value: boolean);
 	/** The width of the sprite, setting this will actually modify the scale to achieve the value set. */
 	get width(): number;
 	set width(value: number);
@@ -5064,6 +5122,7 @@ export declare class SpritePipe implements RenderPipe<Sprite> {
 	};
 	private _renderer;
 	private _gpuSpriteHash;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer);
 	addRenderable(sprite: Sprite, _instructionSet: InstructionSet): void;
 	updateRenderable(sprite: Sprite): void;
@@ -5146,7 +5205,10 @@ export declare class GpuDeviceSystem implements System$1<GpuContextOptions> {
 	private _createDeviceAndAdaptor;
 	destroy(): void;
 }
-export type ExtractedAttributeData = Omit<Attribute, "buffer">;
+export interface ExtractedAttributeData extends Omit<Attribute, "buffer"> {
+	/** set where the shader location is for this attribute */
+	location?: number;
+}
 /**
  * returns the attribute data from the program
  * @private
@@ -5170,7 +5232,7 @@ export interface StructsAndGroups {
 }
 export declare function extractStructAndGroups(wgsl: string): StructsAndGroups;
 /**
- * a WebGPU descriptions of how the program is layed out
+ * a WebGPU descriptions of how the program is laid out
  * @see https://gpuweb.github.io/gpuweb/#gpupipelinelayout
  * @memberof rendering
  */
@@ -5279,6 +5341,11 @@ export declare class GpuProgram {
 	 * @ignore
 	 */
 	_layoutKey: number;
+	/**
+	 * @internal
+	 * @ignore
+	 */
+	_attributeLocationsKey: number;
 	/** the structs and groups extracted from the shader sources */
 	readonly structsAndGroups: StructsAndGroups;
 	/**
@@ -5787,7 +5854,7 @@ export declare class GpuEncoderSystem implements System$1 {
 	private _setIndexBuffer;
 	resetBindGroup(index: number): void;
 	setBindGroup(index: number, bindGroup: BindGroup, program: GpuProgram): void;
-	setGeometry(geometry: Geometry): void;
+	setGeometry(geometry: Geometry, program: GpuProgram): void;
 	private _setShaderBindGroups;
 	private _syncBindGroup;
 	draw(options: {
@@ -6006,7 +6073,7 @@ export declare class UboSystem implements System$1 {
 	private readonly _adaptor;
 	constructor(adaptor: UboAdaptor);
 	/**
-	 * Overrideable function by `pixi.js/unsafe-eval` to silence
+	 * Overridable function by `pixi.js/unsafe-eval` to silence
 	 * throwing an error if platform doesn't support unsafe-evals.
 	 * @private
 	 */
@@ -6064,11 +6131,7 @@ export declare class BufferResource extends EventEmitter<{
 	 * letting the renderer know that it needs to discard the old buffer on the GPU and create a new one
 	 * @event change
 	 */
-	/**
-	 * a unique id for this uniform group used through the renderer
-	 * @internal
-	 * @ignore
-	 */
+	/** a unique id for this uniform group used through the renderer */
 	readonly uid: number;
 	/**
 	 * a resource type, used to identify how to handle it when its in a bind group / shader resource
@@ -6202,6 +6265,7 @@ export declare class PipelineSystem implements System$1 {
 	private _getModule;
 	private _createModule;
 	private _generateBufferKey;
+	private _generateAttributeLocationsKey;
 	private _createVertexBufferLayouts;
 	private _updatePipeHash;
 	destroy(): void;
@@ -6257,6 +6321,14 @@ export declare class GpuRenderTargetSystem extends RenderTargetSystem<GpuRenderT
 	adaptor: GpuRenderTargetAdaptor;
 	constructor(renderer: WebGPURenderer);
 }
+/**
+ * System plugin to the renderer to manage the shaders.
+ * @memberof rendering
+ */
+export interface ShaderSystem extends System$1 {
+	/** the maximum number of textures that can be bound to a shader */
+	readonly maxTextures: number;
+}
 export interface GPUProgramData {
 	bindGroups: GPUBindGroupLayout[];
 	pipeline: GPUPipelineLayout;
@@ -6265,7 +6337,7 @@ export interface GPUProgramData {
  * A system that manages the rendering of GpuPrograms.
  * @memberof rendering
  */
-export declare class GpuShaderSystem implements System$1 {
+export declare class GpuShaderSystem implements ShaderSystem {
 	/** @ignore */
 	static extension: {
 		readonly type: readonly [
@@ -6273,6 +6345,7 @@ export declare class GpuShaderSystem implements System$1 {
 		];
 		readonly name: "shader";
 	};
+	maxTextures: number;
 	private _gpu;
 	private readonly _gpuProgramData;
 	protected contextChange(gpu: GPU$1): void;
@@ -6372,6 +6445,15 @@ export declare class GpuTextureSystem implements System$1, CanvasGenerator {
 	private _initSampler;
 	getGpuSampler(sampler: TextureStyle): GPUSampler;
 	getGpuSource(source: TextureSource): GPUTexture;
+	/**
+	 * this returns s bind group for a specific texture, the bind group contains
+	 * - the texture source
+	 * - the texture style
+	 * - the texture matrix
+	 * This is cached so the bind group should only be created once per texture
+	 * @param texture - the texture you want the bindgroup for
+	 * @returns the bind group for the texture
+	 */
 	getTextureBindGroup(texture: Texture): BindGroup;
 	private _createTextureBindGroup;
 	getTextureView(texture: BindableTexture): GPUTextureView;
@@ -6480,9 +6562,6 @@ export declare function checkMaxIfStatementsInShader(maxIfs: number, gl: GlRende
  * @returns {number} The maximum number of textures that can be batched
  */
 export declare function getMaxTexturesPerBatch(): number;
-export declare class BatchGeometry extends Geometry {
-	constructor();
-}
 export declare function generateGPULayout(maxTextures: number): GPUBindGroupLayoutEntry[];
 export declare function generateLayout(maxTextures: number): Record<string, number>;
 export declare function getTextureBatchBindGroup(textures: TextureSource[], size: number): BindGroup;
@@ -6505,6 +6584,9 @@ export declare class GpuBatchAdaptor implements BatcherAdaptor {
 	start(batchPipe: BatcherPipe, geometry: Geometry): void;
 	execute(batchPipe: BatcherPipe, batch: Batch): void;
 	destroy(): void;
+}
+export declare class BatchGeometry extends Geometry {
+	constructor();
 }
 /** the vertex source code, an obj */
 export type Vertex = {
@@ -6746,6 +6828,8 @@ export declare class Pool<T extends PoolItem> {
 	 * @member {number}
 	 */
 	get totalUsed(): number;
+	/** clears the pool - mainly used for debugging! */
+	clear(): void;
 }
 /**
  * An object that can be stored in a {@link utils.Pool}.
@@ -6914,10 +6998,11 @@ export interface FilterOptions {
 	blendMode?: BLEND_MODES;
 	/**
 	 * the resolution the filter should be rendered at. The lower the resolution, the more performant
-	 * the filter will be, but the lower the quality of the output. (defaults to the renderers resolution)
+	 * the filter will be, but the lower the quality of the output. (default 1)
+	 * If 'inherit', the resolution of the render target is used.
 	 * Consider lowering this for things like blurs filters
 	 */
-	resolution?: number;
+	resolution?: number | "inherit";
 	/**
 	 * the amount of pixels to pad the container with when applying the filter. For example a blur extends the
 	 * container out as it blurs, so padding is applied to ensure that extra detail is rendered as well
@@ -6926,15 +7011,15 @@ export interface FilterOptions {
 	padding?: number;
 	/**
 	 * If true the filter will make use of antialiasing. Although it looks better this can have a performance impact.
-	 * By default, the filter will detect the antialiasing of the renderer and change this automatically.
-	 * Definitely don't set this to true if the renderer has antialiasing set to false. As it will antialias,
-	 * but you won't see the difference.
+	 * If set to 'inherit', the filter will detect the antialiasing of the render target and change this automatically.
+	 * Definitely don't set this to true if the render target has antialiasing set to false. As it will antialias,
+	 * but you won't see the difference. (default 'off')
 	 *
 	 * This can be a boolean or [FilterAntialias]{@link filters.FilterAntialias} string.
 	 */
 	antialias?: FilterAntialias | boolean;
 	/**
-	 * If this is set to true, the filter system will grab a snap shot oif the are being rendered
+	 * If this is set to true, the filter system will grab a snap shot of the area being rendered
 	 * to and pass this into the shader. This is useful for blend modes that need to be aware of the pixels
 	 * they are rendering to. Only use if you need that data, otherwise its an extra gpu copy you don't need!
 	 * (default false)
@@ -6945,9 +7030,9 @@ export interface FilterOptions {
 export type FilterWithShader = FilterOptions & IShaderWithResources;
 /**
  * The antialiasing mode of the filter. This can be either:
- * - `on` - the filter is always antialiased regardless of the renderer settings
- * - `off` - the filter is never antialiased regardless of the renderer settings
- * - `inherit` - (default) the filter uses the antialias settings of the renderer
+ * - `on` - the filter is always antialiased regardless of the render target settings
+ * - `off` - (default) the filter is never antialiased regardless of the render target settings
+ * - `inherit` - the filter uses the antialias settings of the render target
  * @memberof filters
  */
 export type FilterAntialias = "on" | "off" | "inherit";
@@ -7011,7 +7096,7 @@ export declare class Filter extends Shader {
 	 * increase the performance of the filter.
 	 * @default 1
 	 */
-	resolution: number;
+	resolution: number | "inherit";
 	/**
 	 * Whether or not this filter requires the previous render texture for blending.
 	 * @default false
@@ -7656,7 +7741,7 @@ export interface GlBackBufferOptions {
  * For blend modes you need to know what pixels you are actually drawing to. For this to be possible in WebGL
  * we need to render to a texture and then present that texture to the screen. This system manages that process.
  *
- * As the main scene is rendered to a texture, it means we can sample it anc copy its pixels,
+ * As the main scene is rendered to a texture, it means we can sample it and copy its pixels,
  * something not possible on the main canvas.
  *
  * If antialiasing is set to to true and useBackBuffer is set to true, then the back buffer will be antialiased.
@@ -7889,7 +7974,7 @@ export type ShaderSyncFunction = (renderer: WebGLRenderer, shader: Shader, syncD
  * System plugin to the renderer to manage the shaders for WebGL.
  * @memberof rendering
  */
-export declare class GlShaderSystem {
+export declare class GlShaderSystem implements ShaderSystem {
 	/** @ignore */
 	static extension: {
 		readonly type: readonly [
@@ -7897,6 +7982,7 @@ export declare class GlShaderSystem {
 		];
 		readonly name: "shader";
 	};
+	maxTextures: number;
 	/**
 	 * @internal
 	 * @private
@@ -7951,7 +8037,7 @@ export declare class GlShaderSystem {
 	_generateShaderSync(shader: Shader, shaderSystem: GlShaderSystem): ShaderSyncFunction;
 }
 /**
- * Generates the a function that will efficiantly sync shader resources with the GPU.
+ * Generates the a function that will efficiently sync shader resources with the GPU.
  * @param shader - The shader to generate the code for
  * @param shaderSystem - An instance of the shader system
  */
@@ -7998,7 +8084,7 @@ export declare class GlUniformGroupSystem implements System$1 {
 		textureCount: number;
 	}): void;
 	/**
-	 * Overrideable by the pixi.js/unsafe-eval package to use static syncUniforms instead.
+	 * Overridable by the pixi.js/unsafe-eval package to use static syncUniforms instead.
 	 * @param group
 	 * @param program
 	 */
@@ -9145,6 +9231,48 @@ export declare function isRenderingToScreen(renderTarget: RenderTarget): boolean
  * @returns the passed in viewport.
  */
 export declare function viewportFromFrame(viewport: Rectangle, source: TextureSource, frame?: Rectangle): Rectangle;
+/**
+ * The SchedulerSystem manages scheduled tasks with specific intervals.
+ * @memberof rendering
+ */
+export declare class SchedulerSystem implements System$1<null> {
+	/** @ignore */
+	static extension: {
+		readonly type: readonly [
+			ExtensionType.WebGLSystem,
+			ExtensionType.WebGPUSystem,
+			ExtensionType.CanvasSystem
+		];
+		readonly name: "scheduler";
+		readonly priority: 0;
+	};
+	private readonly _tasks;
+	/** Initializes the scheduler system and starts the ticker. */
+	init(): void;
+	/**
+	 * Schedules a repeating task.
+	 * @param func - The function to execute.
+	 * @param duration - The interval duration in milliseconds.
+	 * @returns The unique identifier for the scheduled task.
+	 */
+	repeat(func: (elapsed: number) => void, duration: number): number;
+	/**
+	 * Cancels a scheduled task.
+	 * @param id - The unique identifier of the task to cancel.
+	 */
+	cancel(id: number): void;
+	/**
+	 * Updates and executes the scheduled tasks.
+	 * @private
+	 */
+	private _update;
+	/**
+	 * Destroys the scheduler system and removes all tasks.
+	 * @internal
+	 * @ignore
+	 */
+	destroy(): void;
+}
 export declare enum ShaderStage {
 	VERTEX = 1,
 	FRAGMENT = 2,
@@ -9264,20 +9392,71 @@ export declare class CanvasPoolClass {
 }
 export declare const CanvasPool: CanvasPoolClass;
 /**
- * A render texture, extends `Texture`.
- * @see {@link rendering.Texture}
+ * Options for the {@link RenderableGCSystem}.
+ * @memberof rendering
+ * @property {boolean} [renderableGCActive=true] - If set to true, this will enable the garbage collector on the renderables.
+ * @property {number} [renderableGCAMaxIdle=60000] -
+ * The maximum idle frames before a texture is destroyed by garbage collection.
+ * @property {number} [renderableGCCheckCountMax=60000] - time between two garbage collections.
+ */
+export interface RenderableGCSystemOptions {
+	/**
+	 * If set to true, this will enable the garbage collector on the GPU.
+	 * @default true
+	 * @memberof rendering.SharedRendererOptions
+	 */
+	renderableGCActive: boolean;
+	/**
+	 * The maximum idle frames before a texture is destroyed by garbage collection.
+	 * @default 60 * 60
+	 * @memberof rendering.SharedRendererOptions
+	 */
+	renderableGCMaxUnusedTime: number;
+	/**
+	 * Frames between two garbage collections.
+	 * @default 600
+	 * @memberof rendering.SharedRendererOptions
+	 */
+	renderableGCFrequency: number;
+}
+/**
+ * System plugin to the renderer to manage renderable garbage collection. When rendering
+ * stuff with the renderer will assign resources to each renderable. This could be for example
+ * a batchable Sprite, or a text texture. If the renderable is not used for a certain amount of time
+ * its resources will be tided up by its render pipe.
  * @memberof rendering
  */
-export declare class RenderTexture extends Texture {
-	static create(options: TextureSourceOptions): Texture;
+export declare class RenderableGCSystem implements System$1<RenderableGCSystemOptions> {
+	/** @ignore */
+	static extension: {
+		readonly type: readonly [
+			ExtensionType.WebGLSystem,
+			ExtensionType.WebGPUSystem
+		];
+		readonly name: "renderableGC";
+	};
+	/** default options for the renderableGCSystem */
+	static defaultOptions: RenderableGCSystemOptions;
 	/**
-	 * Resizes the render texture.
-	 * @param width - The new width of the render texture.
-	 * @param height - The new height of the render texture.
-	 * @param resolution - The new resolution of the render texture.
-	 * @returns This texture.
+	 * Maximum idle frames before a texture is destroyed by garbage collection.
+	 * @see renderableGCSystem.defaultMaxIdle
 	 */
-	resize(width: number, height: number, resolution?: number): this;
+	maxUnusedTime: number;
+	private _renderer;
+	private readonly _managedRenderables;
+	private _handler;
+	private _frequency;
+	private _now;
+	/** @param renderer - The renderer this System works for. */
+	constructor(renderer: Renderer);
+	init(options: RenderableGCSystemOptions): void;
+	get enabled(): boolean;
+	set enabled(value: boolean);
+	prerender(): void;
+	addRenderable(renderable: Renderable, instructionSet: InstructionSet): void;
+	/** Runs the scheduled garbage collection */
+	run(): void;
+	destroy(): void;
 }
 /**
  * Options for the {@link TextureGCSystem}.
@@ -9295,11 +9474,17 @@ export interface TextureGCSystemOptions {
 	 */
 	textureGCActive: boolean;
 	/**
+	 * @deprecated since 8.3.0
+	 * @see {@link TextureGCSystem.textureGCMaxIdle}
+	 * @memberof rendering.SharedRendererOptions
+	 */
+	textureGCAMaxIdle: number;
+	/**
 	 * The maximum idle frames before a texture is destroyed by garbage collection.
 	 * @default 60 * 60
 	 * @memberof rendering.SharedRendererOptions
 	 */
-	textureGCAMaxIdle: number;
+	textureGCMaxIdle: number;
 	/**
 	 * Frames between two garbage collections.
 	 * @default 600
@@ -9477,7 +9662,7 @@ export declare const nonCompressedFormats: TEXTURE_FORMATS[];
 export declare function getSupportedTextureFormats(): Promise<TEXTURE_FORMATS[]>;
 export declare function createIdFromString(value: string, groupId: string): number;
 export declare function parseFunctionBody(fn: (...args: any[]) => any): string;
-declare const DefaultWebGPUSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook | typeof GpuUboSystem | typeof GpuEncoderSystem | typeof GpuDeviceSystem | typeof GpuBufferSystem | typeof GpuTextureSystem | typeof GpuRenderTargetSystem | typeof GpuShaderSystem | typeof GpuStateSystem | typeof PipelineSystem | typeof GpuColorMaskSystem | typeof GpuStencilSystem | typeof BindGroupSystem)[];
+declare const DefaultWebGPUSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook | typeof RenderableGCSystem | typeof SchedulerSystem | typeof GpuUboSystem | typeof GpuEncoderSystem | typeof GpuDeviceSystem | typeof GpuBufferSystem | typeof GpuTextureSystem | typeof GpuRenderTargetSystem | typeof GpuShaderSystem | typeof GpuStateSystem | typeof PipelineSystem | typeof GpuColorMaskSystem | typeof GpuStencilSystem | typeof BindGroupSystem)[];
 declare const DefaultWebGPUPipes: (typeof BlendModePipe | typeof BatcherPipe | typeof SpritePipe | typeof RenderGroupPipe | typeof AlphaMaskPipe | typeof StencilMaskPipe | typeof ColorMaskPipe | typeof CustomRenderPipe | typeof GpuUniformBatchPipe)[];
 type WebGPUSystems = ExtractSystemTypes<typeof DefaultWebGPUSystems> & PixiMixins.RendererSystems & PixiMixins.WebGPUSystems;
 export type WebGPUPipes = ExtractSystemTypes<typeof DefaultWebGPUPipes> & PixiMixins.RendererPipes & PixiMixins.WebGPUPipes;
@@ -9697,7 +9882,7 @@ export declare class Application<R extends Renderer = Renderer> {
 	stage: Container;
 	/**
 	 * WebGL renderer if available, otherwise CanvasRenderer.
-	 * @member {Renderer}
+	 * @member {rendering.Renderer}
 	 */
 	renderer: R;
 	/** Create new Application instance */
@@ -9779,7 +9964,7 @@ export declare class RendererInitHook implements System$1 {
 	init(): void;
 	destroy(): void;
 }
-export declare const SharedSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook)[];
+export declare const SharedSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook | typeof RenderableGCSystem | typeof SchedulerSystem)[];
 export declare const SharedRenderPipes: (typeof BlendModePipe | typeof BatcherPipe | typeof SpritePipe | typeof RenderGroupPipe | typeof AlphaMaskPipe | typeof StencilMaskPipe | typeof ColorMaskPipe | typeof CustomRenderPipe)[];
 /**
  * Options for the shared systems of a renderer.
@@ -9929,8 +10114,9 @@ type Runners = {
  */
 export declare class AbstractRenderer<PIPES, OPTIONS extends SharedRendererOptions, CANVAS extends ICanvas = HTMLCanvasElement> extends EventEmitter<{
 	resize: [
-		number,
-		number
+		screenWidth: number,
+		screenHeight: number,
+		resolution: number
 	];
 }> {
 	/** The default options for the renderer. */
@@ -10082,14 +10268,14 @@ export declare class AbstractRenderer<PIPES, OPTIONS extends SharedRendererOptio
 	 */
 	get roundPixels(): boolean;
 	/**
-	 * Overrideable function by `pixi.js/unsafe-eval` to silence
+	 * Overridable function by `pixi.js/unsafe-eval` to silence
 	 * throwing an error if platform doesn't support unsafe-evals.
 	 * @private
 	 * @ignore
 	 */
 	_unsafeEvalCheck(): void;
 }
-declare const DefaultWebGLSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook | typeof GlUboSystem | typeof GlBackBufferSystem | typeof GlContextSystem | typeof GlBufferSystem | typeof GlTextureSystem | typeof GlRenderTargetSystem | typeof GlGeometrySystem | typeof GlUniformGroupSystem | typeof GlShaderSystem | typeof GlEncoderSystem | typeof GlStateSystem | typeof GlStencilSystem | typeof GlColorMaskSystem)[];
+declare const DefaultWebGLSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook | typeof RenderableGCSystem | typeof SchedulerSystem | typeof GlUboSystem | typeof GlBackBufferSystem | typeof GlContextSystem | typeof GlBufferSystem | typeof GlTextureSystem | typeof GlRenderTargetSystem | typeof GlGeometrySystem | typeof GlUniformGroupSystem | typeof GlShaderSystem | typeof GlEncoderSystem | typeof GlStateSystem | typeof GlStencilSystem | typeof GlColorMaskSystem)[];
 declare const DefaultWebGLPipes: (typeof BlendModePipe | typeof BatcherPipe | typeof SpritePipe | typeof RenderGroupPipe | typeof AlphaMaskPipe | typeof StencilMaskPipe | typeof ColorMaskPipe | typeof CustomRenderPipe)[];
 type WebGLSystems = ExtractSystemTypes<typeof DefaultWebGLSystems> & PixiMixins.RendererSystems & PixiMixins.WebGLSystems;
 /** The default WebGL renderer, uses WebGL2 contexts. */
@@ -10176,13 +10362,23 @@ export declare class WebGLRenderer<T extends ICanvas = HTMLCanvasElement> extend
 	constructor();
 }
 /** A generic renderer. */
+/**
+ * @memberof rendering
+ * @extends rendering.WebGLRenderer
+ * @extends rendering.WebGPURenderer
+ */
 export type Renderer<T extends ICanvas = HTMLCanvasElement> = WebGLRenderer<T> | WebGPURenderer<T>;
 export type RenderPipes = WebGLPipes | WebGPUPipes;
+/**
+ * @extends rendering.WebGLOptions
+ * @extends rendering.WebGPUOptions
+ */
 export interface RendererOptions extends WebGLOptions, WebGPUOptions {
 }
 /**
  * Ids for the different render types.
- * The idea is that you can use bitwise operations to filter weather or not you want to do somthing in a certain render type.
+ * The idea is that you can use bitwise operations to filter whether or not you want to do something
+ * in a certain render type.
  * Filters for example can be compatible for both webGL or WebGPU but not compatible with canvas.
  * So internally if it works with both we set filter.compatibleRenderers = RendererType.WEBGL | RendererType.WEBGPU
  * if it only works with webgl we set filter.compatibleRenderers = RendererType.WEBGL
@@ -10826,7 +11022,7 @@ export declare class ResizePlugin {
 	static destroy(): void;
 }
 /**
- * Application options for the {@link app.TickerPluginOptions}.
+ * Application options for the {@link app.TickerPlugin}.
  * @memberof app
  * @property {boolean} [autoStart=true] - Automatically starts the rendering after the construction.
  * **Note**: Setting this parameter to `false` does NOT stop the shared ticker even if you set
@@ -11962,7 +12158,13 @@ export interface EventSystemOptions {
 	 */
 	eventFeatures?: Partial<EventSystemFeatures>;
 }
-interface EventSystemFeatures {
+/**
+ * The event features that are enabled by the EventSystem
+ * (included in the **pixi.js** and **pixi.js-legacy** bundle), otherwise it will be ignored.
+ * @since 7.2.0
+ * @memberof events
+ */
+export interface EventSystemFeatures {
 	/**
 	 * Enables pointer events associated with pointer movement:
 	 * - `pointermove` / `mousemove` / `touchmove`
@@ -12561,7 +12763,8 @@ export interface PathInstruction {
  */
 export declare class GraphicsPath {
 	instructions: PathInstruction[];
-	uid: number;
+	/** unique id for this graphics path */
+	readonly uid: number;
 	private _dirty;
 	private _shapePath;
 	/**
@@ -12868,6 +13071,7 @@ export interface LinearGradientFillStyle {
 }
 export declare class FillGradient implements CanvasGradient {
 	static defaultTextureSize: number;
+	/** unique id for this fill gradient */
 	readonly uid: number;
 	readonly type: GradientType;
 	x0: number;
@@ -12888,6 +13092,7 @@ export declare class FillGradient implements CanvasGradient {
 }
 export type PatternRepetition = "repeat" | "repeat-x" | "repeat-y" | "no-repeat";
 export declare class FillPattern implements CanvasPattern {
+	/** unique id for this fill pattern */
 	readonly uid: number;
 	texture: Texture;
 	transform: Matrix;
@@ -13037,7 +13242,8 @@ export declare class GraphicsContext extends EventEmitter<{
 	static defaultFillStyle: ConvertedFillStyle;
 	/** The default stroke style to use when none is provided. */
 	static defaultStrokeStyle: ConvertedStrokeStyle;
-	uid: number;
+	/** unique id for this graphics context */
+	readonly uid: number;
 	dirty: boolean;
 	batchMode: BatchMode;
 	instructions: GraphicsInstructions[];
@@ -13821,17 +14027,13 @@ export interface TextOptions<TEXT_STYLE extends TextStyle = TextStyle, TEXT_STYL
  * @see scene.HTMLText
  * @memberof scene
  */
-export declare abstract class AbstractText<TEXT_STYLE extends TextStyle = TextStyle, TEXT_STYLE_OPTIONS extends TextStyleOptions = TextStyleOptions> extends Container implements View {
-	abstract readonly renderPipeId: string;
+export declare abstract class AbstractText<TEXT_STYLE extends TextStyle = TextStyle, TEXT_STYLE_OPTIONS extends TextStyleOptions = TextStyleOptions> extends ViewContainer implements View {
 	batched: boolean;
 	_anchor: ObservablePoint;
 	_resolution: number;
 	_autoResolution: boolean;
 	_style: TEXT_STYLE;
 	_didTextUpdate: boolean;
-	_roundPixels: 0 | 1;
-	protected _bounds: Bounds;
-	protected _boundsDirty: boolean;
 	protected _text: string;
 	private readonly _styleClass;
 	constructor(options: TextOptions<TEXT_STYLE, TEXT_STYLE_OPTIONS>, styleClass: new (options: TEXT_STYLE_OPTIONS) => TEXT_STYLE);
@@ -13852,12 +14054,6 @@ export declare abstract class AbstractText<TEXT_STYLE extends TextStyle = TextSt
 	 */
 	get anchor(): ObservablePoint;
 	set anchor(value: PointData | number);
-	/**
-	 *  Whether or not to round the x/y position of the text.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	set roundPixels(value: boolean);
 	/** Set the copy for the text object. To split a line you can use '\n'. */
 	set text(value: TextString);
 	get text(): string;
@@ -13989,8 +14185,7 @@ export declare abstract class PrepareBase {
 	/** Timeout id for next processing call */
 	protected timeout?: number;
 	/**
-	 * * @param {Renderer} renderer - A reference to the current renderer
-	 * @param renderer
+	 * @param {rendering.Renderer} renderer - A reference to the current renderer
 	 */
 	constructor(renderer: Renderer);
 	/** Resolve the given resource type and return an item for the queue */
@@ -14099,11 +14294,9 @@ export interface GraphicsOptions extends ContainerOptions {
  * @memberof scene
  * @extends scene.Container
  */
-export declare class Graphics extends Container implements View, Instruction {
-	readonly canBundle = true;
-	readonly renderPipeId = "graphics";
+export declare class Graphics extends ViewContainer implements Instruction {
+	readonly renderPipeId: string;
 	batched: boolean;
-	_roundPixels: 0 | 1;
 	_didGraphicsUpdate: boolean;
 	private _context;
 	private readonly _ownedContext;
@@ -14128,12 +14321,6 @@ export declare class Graphics extends Container implements View, Instruction {
 	 * @param point - The point to check
 	 */
 	containsPoint(point: PointData): boolean;
-	/**
-	 *  Whether or not to round the x/y position of the graphic.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	set roundPixels(value: boolean);
 	protected onViewUpdate(): void;
 	/**
 	 * Destroys this graphics renderable and optionally its context.
@@ -14621,6 +14808,7 @@ interface GeometryData {
 export declare class GpuGraphicsContext {
 	isBatchable: boolean;
 	context: GraphicsContext;
+	batcher: Batcher;
 	batches: BatchableGraphics[];
 	geometryData: GeometryData;
 	graphicsData: GraphicsContextRenderData;
@@ -14659,7 +14847,6 @@ export declare class GraphicsContextSystem implements System$1<GraphicsContextSy
 	};
 	/** The default options for the GraphicsContextSystem. */
 	static readonly defaultOptions: GraphicsContextSystemOptions;
-	private readonly _activeBatchers;
 	private _gpuContextHash;
 	private _graphicsDataContextHash;
 	/**
@@ -14667,11 +14854,9 @@ export declare class GraphicsContextSystem implements System$1<GraphicsContextSy
 	 * @ignore
 	 */
 	init(options?: GraphicsContextSystemOptions): void;
-	protected prerender(): void;
 	getContextRenderData(context: GraphicsContext): GraphicsContextRenderData;
 	updateGpuContext(context: GraphicsContext): GpuGraphicsContext;
 	getGpuContext(context: GraphicsContext): GpuGraphicsContext;
-	private _returnActiveBatchers;
 	private _initContextRenderData;
 	private _initContext;
 	protected onGraphicsContextDestroy(context: GraphicsContext): void;
@@ -14705,6 +14890,7 @@ export declare class GraphicsPipe implements RenderPipe<Graphics> {
 	state: State;
 	private _graphicsBatchesHash;
 	private _adaptor;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: GraphicsSystem, adaptor: GraphicsAdaptor);
 	validateRenderable(graphics: Graphics): boolean;
 	addRenderable(graphics: Graphics, instructionSet: InstructionSet): void;
@@ -14804,7 +14990,7 @@ export interface MeshOptions<GEOMETRY extends Geometry = MeshGeometry, SHADER ex
 	 * Represents the vertex and fragment shaders that processes the geometry and runs on the GPU.
 	 * Can be shared between multiple Mesh objects.
 	 */
-	shader?: SHADER;
+	shader?: SHADER | null;
 	/** The state of WebGL required to render the mesh. */
 	state?: State;
 	/** The texture that the Mesh uses. Null for non-MeshMaterial shaders */
@@ -14827,37 +15013,29 @@ export interface MeshOptions<GEOMETRY extends Geometry = MeshGeometry, SHADER ex
  * Through a combination of the above elements you can render anything you want, 2D or 3D!
  * @memberof scene
  */
-export declare class Mesh<GEOMETRY extends Geometry = MeshGeometry, SHADER extends Shader = TextureShader> extends Container implements View, Instruction {
-	readonly renderPipeId = "mesh";
-	readonly canBundle = true;
+export declare class Mesh<GEOMETRY extends Geometry = MeshGeometry, SHADER extends Shader = TextureShader> extends ViewContainer implements View, Instruction {
+	readonly renderPipeId: string;
 	state: State;
 	/** @ignore */
 	_texture: Texture;
 	/** @ignore */
 	_geometry: GEOMETRY;
 	/** @ignore */
-	_shader?: SHADER;
-	_roundPixels: 0 | 1;
+	_shader: SHADER | null;
 	/**
 	 * @param {scene.MeshOptions} options - options for the mesh instance
 	 */
 	constructor(options: MeshOptions<GEOMETRY, SHADER>);
 	/** @deprecated since 8.0.0 */
 	constructor(geometry: GEOMETRY, shader: SHADER, state?: State, drawMode?: Topology);
-	/**
-	 *  Whether or not to round the x/y position of the mesh.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	set roundPixels(value: boolean);
 	/** Alias for {@link scene.Mesh#shader}. */
 	get material(): SHADER;
 	/**
 	 * Represents the vertex and fragment shaders that processes the geometry and runs on the GPU.
 	 * Can be shared between multiple Mesh objects.
 	 */
-	set shader(value: SHADER);
-	get shader(): SHADER;
+	set shader(value: SHADER | null);
+	get shader(): SHADER | null;
 	/**
 	 * Includes vertex positions, face indices, colors, UVs, and
 	 * custom attributes within buffers, reducing the cost of passing all
@@ -14900,11 +15078,7 @@ export interface MeshAdaptor {
 	execute(meshPipe: MeshPipe, mesh: Mesh): void;
 	destroy(): void;
 }
-export interface MeshInstruction extends Instruction {
-	renderPipeId: "mesh";
-	mesh: Mesh;
-}
-export declare class MeshPipe implements RenderPipe<Mesh>, InstructionPipe<MeshInstruction> {
+export declare class MeshPipe implements RenderPipe<Mesh>, InstructionPipe<Mesh> {
 	/** @ignore */
 	static extension: {
 		readonly type: readonly [
@@ -14933,12 +15107,13 @@ export declare class MeshPipe implements RenderPipe<Mesh>, InstructionPipe<MeshI
 	private _meshDataHash;
 	private _gpuBatchableMeshHash;
 	private _adaptor;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer, adaptor: MeshAdaptor);
 	validateRenderable(mesh: Mesh): boolean;
 	addRenderable(mesh: Mesh, instructionSet: InstructionSet): void;
 	updateRenderable(mesh: Mesh): void;
 	destroyRenderable(mesh: Mesh): void;
-	execute({ mesh }: MeshInstruction): void;
+	execute(mesh: Mesh): void;
 	private _getMeshData;
 	private _initMeshData;
 	private _getBatchableMesh;
@@ -15191,7 +15366,7 @@ export interface TilingSpriteOptions extends ContainerOptions {
  * @memberof scene
  * @extends scene.Container
  */
-export declare class TilingSprite extends Container implements View, Instruction {
+export declare class TilingSprite extends ViewContainer implements View, Instruction {
 	/**
 	 * Creates a new tiling sprite.
 	 * @param source - The source to create the texture from.
@@ -15201,17 +15376,13 @@ export declare class TilingSprite extends Container implements View, Instruction
 	static from(source: Texture | string, options?: TilingSpriteOptions): TilingSprite;
 	/** default options for the TilingSprite */
 	static defaultOptions: TilingSpriteOptions;
-	readonly renderPipeId = "tilingSprite";
-	readonly canBundle = true;
+	readonly renderPipeId: string;
 	readonly batched = true;
 	_anchor: ObservablePoint;
 	_tileTransform: Transform;
 	_texture: Texture;
 	_applyAnchorToTexture: boolean;
 	_didTilingSpriteUpdate: boolean;
-	_roundPixels: 0 | 1;
-	private _bounds;
-	private _boundsDirty;
 	private _width;
 	private _height;
 	/**
@@ -15259,16 +15430,10 @@ export declare class TilingSprite extends Container implements View, Instruction
 	/** The transform of the image that is being tiled. */
 	get tileTransform(): Transform;
 	/**
-	 *  Whether or not to round the x/y position of the sprite.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	set roundPixels(value: boolean);
-	/**
 	 * The local bounds of the sprite.
 	 * @type {rendering.Bounds}
 	 */
-	get bounds(): BoundsData;
+	get bounds(): Bounds;
 	set texture(value: Texture);
 	/** The texture that the sprite is using. */
 	get texture(): Texture;
@@ -15278,7 +15443,7 @@ export declare class TilingSprite extends Container implements View, Instruction
 	set height(value: number);
 	/** The height of the tiling area. */
 	get height(): number;
-	private _updateBounds;
+	protected _updateBounds(): void;
 	/**
 	 * Adds the bounds of this object to the bounds object.
 	 * @param bounds - The output bounds object.
@@ -15312,6 +15477,7 @@ export declare class TilingSpritePipe implements RenderPipe<TilingSprite> {
 	private _renderer;
 	private readonly _state;
 	private readonly _tilingSpriteDataHash;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer);
 	validateRenderable(renderable: TilingSprite): boolean;
 	addRenderable(tilingSprite: TilingSprite, instructionSet: InstructionSet): void;
@@ -15446,6 +15612,7 @@ export declare class BitmapTextPipe implements RenderPipe<BitmapText> {
 	};
 	private _renderer;
 	private _gpuBitmapText;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer);
 	validateRenderable(bitmapText: BitmapText): boolean;
 	addRenderable(bitmapText: BitmapText, instructionSet: InstructionSet): void;
@@ -15600,10 +15767,11 @@ export declare class HTMLTextPipe implements RenderPipe<HTMLText> {
 	};
 	private _renderer;
 	private _gpuText;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer);
 	resolutionChange(): void;
 	validateRenderable(htmlText: HTMLText): boolean;
-	addRenderable(htmlText: HTMLText): void;
+	addRenderable(htmlText: HTMLText, _instructionSet: InstructionSet): void;
 	updateRenderable(htmlText: HTMLText): void;
 	destroyRenderable(htmlText: HTMLText): void;
 	private _destroyRenderableById;
@@ -15715,6 +15883,7 @@ export declare class CanvasTextPipe implements RenderPipe<Text$1> {
 	};
 	private _renderer;
 	private _gpuText;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer);
 	resolutionChange(): void;
 	validateRenderable(text: Text$1): boolean;
@@ -16535,7 +16704,7 @@ export interface LoadTextureConfig {
  * @param url - The image to load an image bitmap for
  * @ignore
  */
-export declare function loadImageBitmap(url: string): Promise<ImageBitmap>;
+export declare function loadImageBitmap(url: string, asset?: ResolvedAsset<TextureSourceOptions<any>>): Promise<ImageBitmap>;
 /**
  * A simple plugin to load our textures!
  * This makes use of imageBitmaps where available.
@@ -16953,7 +17122,7 @@ export interface AssetInitOptions {
 	 * or you might set the resolution to 2 if the user is on a retina display
 	 */
 	texturePreference?: {
-		/** the resolution order you prefer, can be an array (priority order - first is prefered) or a single resolutions  */
+		/** the resolution order you prefer, can be an array (priority order - first is preferred) or a single resolutions  */
 		resolution?: number | number[];
 		/**
 		 * the formats you prefer, by default this will be:
@@ -17322,7 +17491,7 @@ export declare class AssetsClass {
 	 * Initiate a background load of some assets. It will passively begin to load these assets in the background.
 	 * So when you actually come to loading them you will get a promise that resolves to the loaded assets immediately
 	 *
-	 * An example of this might be that you would background load game assets after your inital load.
+	 * An example of this might be that you would background load game assets after your initial load.
 	 * then when you got to actually load your game screen assets when a player goes to the game - the loading
 	 * would already have stared or may even be complete, saving you having to show an interim load bar.
 	 * @example
@@ -17680,7 +17849,7 @@ declare class WorkerManagerClass {
 	private _isImageBitmapSupported?;
 	constructor();
 	isImageBitmapSupported(): Promise<boolean>;
-	loadImageBitmap(src: string): Promise<ImageBitmap>;
+	loadImageBitmap(src: string, asset?: ResolvedAsset<TextureSourceOptions<any>>): Promise<ImageBitmap>;
 	private _initWorkers;
 	private _getWorker;
 	private _returnWorker;
@@ -18582,6 +18751,16 @@ export interface BlurFilterOptions extends FilterOptions {
 	 */
 	strength?: number;
 	/**
+	 * The horizontal strength of the blur.
+	 * @default 8
+	 */
+	strengthX?: number;
+	/**
+	 * The vertical strength of the blur.
+	 * @default 8
+	 */
+	strengthY?: number;
+	/**
 	 * The quality of the blur filter.
 	 * @default 4
 	 */
@@ -18611,7 +18790,7 @@ export declare class BlurFilter extends Filter {
 	 */
 	constructor(options?: BlurFilterOptions);
 	/** @deprecated since 8.0.0 */
-	constructor(strength?: number, quality?: number, resolution?: number, kernelSize?: number);
+	constructor(strength?: number, quality?: number, resolution?: number | null, kernelSize?: number);
 	/**
 	 * Applies the filter.
 	 * @param filterManager - The manager.
@@ -18623,10 +18802,10 @@ export declare class BlurFilter extends Filter {
 	protected updatePadding(): void;
 	/**
 	 * Sets the strength of both the blurX and blurY properties simultaneously
-	 * @default 2
+	 * @default 8
 	 */
-	get blur(): number;
-	set blur(value: number);
+	get strength(): number;
+	set strength(value: number);
 	/**
 	 * Sets the number of passes for blur. More passes means higher quality bluring.
 	 * @default 1
@@ -18634,23 +18813,41 @@ export declare class BlurFilter extends Filter {
 	get quality(): number;
 	set quality(value: number);
 	/**
+	 * Sets the strength of horizontal blur
+	 * @default 8
+	 */
+	get strengthX(): number;
+	set strengthX(value: number);
+	/**
+	 * Sets the strength of the vertical blur
+	 * @default 8
+	 */
+	get strengthY(): number;
+	set strengthY(value: number);
+	/**
+	 * Sets the strength of both the blurX and blurY properties simultaneously
+	 * @default 2
+	 * @deprecated since 8.3.0
+	 * @see BlurFilter.strength
+	 */
+	get blur(): number;
+	set blur(value: number);
+	/**
 	 * Sets the strength of the blurX property
 	 * @default 2
+	 * @deprecated since 8.3.0
+	 * @see BlurFilter.strengthX
 	 */
 	get blurX(): number;
 	set blurX(value: number);
 	/**
 	 * Sets the strength of the blurY property
 	 * @default 2
+	 * @deprecated since 8.3.0
+	 * @see BlurFilter.strengthY
 	 */
 	get blurY(): number;
 	set blurY(value: number);
-	/**
-	 * Sets the blendmode of the filter
-	 * @default "normal"
-	 */
-	get blendMode(): BLEND_MODES;
-	set blendMode(value: BLEND_MODES);
 	/**
 	 * If set to true the edge of the target will be clamped
 	 * @default false
@@ -18710,7 +18907,7 @@ export declare class ColorMatrixFilter extends Filter {
 	private _colorMatrix;
 	/**
 	 * Adjusts brightness
-	 * @param b - value of the brigthness (0-1, where 0 is black)
+	 * @param b - value of the brightness (0-1, where 0 is black)
 	 * @param multiply - if true, current matrix and matrix are multiplied. If false,
 	 *  just set the current matrix with @param matrix
 	 */
@@ -18837,7 +19034,7 @@ export declare class ColorMatrixFilter extends Filter {
 	/**
 	 * Predator effect
 	 *
-	 * Erase the current matrix by setting a new indepent one
+	 * Erase the current matrix by setting a new independent one
 	 * @param amount - how much the predator feels his future victim
 	 * @param multiply - if true, current matrix and matrix are multiplied. If false,
 	 *  just set the current matrix with @param matrix
@@ -19355,9 +19552,10 @@ export declare class Ellipse implements ShapePrimitive {
 	strokeContains(x: number, y: number, width: number): boolean;
 	/**
 	 * Returns the framing rectangle of the ellipse as a Rectangle object
+	 * @param out
 	 * @returns The framing rectangle
 	 */
-	getBounds(): Rectangle;
+	getBounds(out?: Rectangle): Rectangle;
 	/**
 	 * Copies another ellipse to this one.
 	 * @param ellipse - The ellipse to copy from.
@@ -19764,8 +19962,8 @@ export declare const boundsPool: Pool<BoundsPoolItem>;
  * @param ignore - An object of property names to ignore ({ propToIgnore: true }).
  */
 export declare function assignWithIgnore<T extends Record<string, any>>(target: T, options: T, ignore?: Record<string, boolean>): void;
-export declare function buildInstructions(renderGroup: RenderGroup, renderPipes: RenderPipes): void;
-export declare function collectAllRenderables(container: Container, instructionSet: InstructionSet, rendererPipes: RenderPipes): void;
+export declare function buildInstructions(renderGroup: RenderGroup, renderer: Renderer): void;
+export declare function collectAllRenderables(container: Container, instructionSet: InstructionSet, renderer: Renderer): void;
 /**
  * This function will crawl through the container essentially check if the children have changed.
  *
@@ -19786,6 +19984,14 @@ export declare function checkChildrenDidChange(container: Container, previousDat
 	index: number;
 	didChange: boolean;
 }): boolean;
+/**
+ * nulls all slots in an array from a certain index.
+ * assume that when a null item is hit, the rest are also null.
+ * Which will be the case for where this is used!
+ * @param list - the array to clean
+ * @param index - the index to start from
+ */
+export declare function clearList(list: Array<unknown>, index?: number): void;
 export declare function collectRenderGroups(renderGroup: RenderGroup, out?: RenderGroup[]): RenderGroup[];
 /**
  * Returns a new object with all properties from the input object that have defined values.
@@ -19956,7 +20162,7 @@ export interface GeometryPathOptions {
  * const mesh = new Mesh({geometry});
  *
  * ```
- * You can also pass in a Matrix to transform the uvs as by defualt you may want to control how they are set up.
+ * You can also pass in a Matrix to transform the uvs as by default you may want to control how they are set up.
  * @param options - either a `GraphicsPath` or `GeometryPathOptions`
  * @returns a new `MeshGeometry` instance build from the path
  */
@@ -19980,6 +20186,119 @@ export declare function toFillStyle<T extends FillInput>(value: T, defaultStyle:
 export declare function toStrokeStyle(value: StrokeInput, defaultStyle: ConvertedStrokeStyle): ConvertedStrokeStyle;
 export declare function getOrientationOfPoints(points: number[]): number;
 export declare function triangulateWithHoles(points: number[], holes: number[], vertices: number[], verticesStride: number, verticesOffset: number, indices: number[], indicesOffset: number): void;
+/**
+ * Constructor options used for `PlaneGeometry` instances.
+ * ```js
+ * const planeGeometry = new PlaneGeometry({
+ *    width: 100,
+ *    height: 100,
+ *    verticesX: 10,
+ *    verticesY: 10,
+ * });
+ * ```
+ * @see {@link scene.PlaneGeometry}
+ * @memberof scene
+ */
+export interface PlaneGeometryOptions {
+	/** Width of plane */
+	width?: number;
+	/** Height of plane */
+	height?: number;
+	/** Number of vertices on x-axis */
+	verticesX?: number;
+	/** Number of vertices on y-axis */
+	verticesY?: number;
+}
+/**
+ * The PlaneGeometry allows you to draw a 2d plane
+ * @memberof scene
+ */
+export declare class PlaneGeometry extends MeshGeometry {
+	static defaultOptions: PlaneGeometryOptions & MeshGeometryOptions;
+	/** The number of vertices on x-axis */
+	verticesX: number;
+	/** The number of vertices on y-axis */
+	verticesY: number;
+	/** The width of plane */
+	width: number;
+	/** The height of plane */
+	height: number;
+	/**
+	 * @param {PlaneGeometryOptions} options - Options to be applied to plane geometry
+	 */
+	constructor(options: PlaneGeometryOptions);
+	/** @deprecated since 8.0.0 */
+	constructor(width?: number, height?: number, verticesX?: number, verticesY?: number);
+	/**
+	 * Refreshes plane coordinates
+	 * @param options - Options to be applied to plane geometry
+	 */
+	build(options: PlaneGeometryOptions): void;
+}
+/**
+ * Constructor options used for `PerspectivePlaneGeometry` instances.
+ * @memberof scene
+ */
+export interface PerspectivePlaneGeometryOptions extends PlaneGeometryOptions {
+	/** The width of the plane */
+	width: number;
+	/** The height of the plane */
+	height: number;
+}
+/**
+ * A PerspectivePlaneGeometry allows you to draw a 2d plane with perspective. Where ever you move the corners
+ * the texture will be projected to look like it is in 3d space. Great for mapping a 2D mesh into a 3D scene.
+ *
+ * IMPORTANT: This is not a full 3D mesh, it is a 2D mesh with a perspective projection applied to it :)
+ *
+ * ```js
+ * const perspectivePlaneGeometry = new PerspectivePlaneGeometry({
+ *  width: 100,
+ *  height: 100,
+ *  verticesX: 10,
+ *  verticesY: 10,
+ * });
+ * ```
+ * @see {@link scene.PerspectivePlaneGeometry}
+ * @memberof scene
+ */
+export declare class PerspectivePlaneGeometry extends PlaneGeometry {
+	/** The corner points of the quad you can modify these directly, if you do make sure to call `updateProjection` */
+	corners: [
+		number,
+		number,
+		number,
+		number,
+		number,
+		number,
+		number,
+		number
+	];
+	private readonly _projectionMatrix;
+	/**
+	 * @param options - Options to be applied to MeshPlane
+	 * @param options.width - The width of the plane
+	 * @param options.height - The height of the plane
+	 * @param options.verticesX - The amount of vertices on the x axis
+	 * @param options.verticesY - The amount of vertices on the y axis
+	 */
+	constructor(options: PerspectivePlaneGeometryOptions);
+	/**
+	 * Will set the corners of the quad to the given coordinates
+	 * Calculating the perspective so it looks correct!
+	 * @param x0 - x coordinate of the first corner
+	 * @param y0 - y coordinate of the first corner
+	 * @param x1 - x coordinate of the second corner
+	 * @param y1 - y coordinate of the second corner
+	 * @param x2 - x coordinate of the third corner
+	 * @param y2 - y coordinate of the third corner
+	 * @param x3 - x coordinate of the fourth corner
+	 * @param y3 - y coordinate of the fourth corner
+	 */
+	setCorners(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): void;
+	/** Update the projection matrix based on the corners */
+	updateProjection(): void;
+}
 /**
  * Constructor options used for `MeshPlane` instances.
  * ```js
@@ -20037,54 +20356,128 @@ export declare class MeshPlane extends Mesh {
 	destroy(options?: DestroyOptions): void;
 }
 /**
- * Constructor options used for `PlaneGeometry` instances.
+ *
+ * Constructor options used for `PerspectiveMesh` instances.
  * ```js
- * const planeGeometry = new PlaneGeometry({
- *    width: 100,
- *    height: 100,
- *    verticesX: 10,
- *    verticesY: 10,
+ * const meshPlane = new PerspectiveMesh({
+ *  texture: Texture.from('snake.png'),
+ *  verticesX: 20,
+ *  verticesY: 20,
+ *  x0: 0,
+ *  y0: 0,
+ *  x1: 100,
+ *  y1: 0,
+ *  x2: 100,
+ *  y2: 100,
+ *  x3: 0,
+ *  y3: 100
  * });
- * ```
- * @see {@link scene.PlaneGeometry}
+ * @see {@link scene.PerspectiveMesh}
  * @memberof scene
  */
-export interface PlaneGeometryOptions {
-	/** Width of plane */
-	width?: number;
-	/** Height of plane */
-	height?: number;
-	/** Number of vertices on x-axis */
-	verticesX?: number;
-	/** Number of vertices on y-axis */
-	verticesY?: number;
+export interface PerspectivePlaneOptions extends MeshPlaneOptions {
+	/** top left corner x value */
+	x0?: number;
+	/** top left corner y value */
+	y0?: number;
+	/** top right corner x value */
+	x1?: number;
+	/** top right corner y value */
+	y1?: number;
+	/** bottom right corner x value */
+	x2?: number;
+	/** bottom right corner y value */
+	y2?: number;
+	/** bottom left corner x value */
+	x3?: number;
+	/** bottom left corner y value */
+	y3?: number;
 }
 /**
- * The PlaneGeometry allows you to draw a 2d plane
+ * A perspective mesh that allows you to draw a 2d plane with perspective. Where ever you move the corners
+ * the texture will be projected to look like it is in 3d space. Great for mapping a 2D mesh into a 3D scene.
+ *
+ * The calculations is done at the uv level. This means that the more vertices you have the more smooth
+ * the perspective will be. If you have a low amount of vertices you may see the texture stretch. Too many vertices
+ * could be slower. It is a balance between performance and quality! We leave that to you to decide.
+ *
+ * IMPORTANT: This is not a full 3D mesh, it is a 2D mesh with a perspective projection applied to it :)
+ * @example
+ * ```js
+ * const meshPlane = new PerspectiveMesh({
+ *  texture: Texture.from('snake.png'),
+ *  verticesX: 20,
+ *  verticesY: 20,
+ *  x0: 0,
+ *  y0: 0,
+ *  x1: 100,
+ *  y1: 0,
+ *  x2: 100,
+ *  y2: 100,
+ *  x3: 0,
+ *  y3: 100
+ * });
+ * @see {@link scene.PerspectiveMesh}
  * @memberof scene
  */
-export declare class PlaneGeometry extends MeshGeometry {
-	static defaultOptions: PlaneGeometryOptions & MeshGeometryOptions;
-	/** The number of vertices on x-axis */
-	verticesX: number;
-	/** The number of vertices on y-axis */
-	verticesY: number;
-	/** The width of plane */
-	width: number;
-	/** The height of plane */
-	height: number;
+export declare class PerspectiveMesh extends Mesh<PerspectivePlaneGeometry> {
+	/** default options for the mesh */
+	static defaultOptions: PerspectivePlaneOptions;
 	/**
-	 * @param {PlaneGeometryOptions} options - Options to be applied to plane geometry
+	 * @param options - Options to be applied to PerspectiveMesh
 	 */
-	constructor(options: PlaneGeometryOptions);
-	/** @deprecated since 8.0.0 */
-	constructor(width?: number, height?: number, verticesX?: number, verticesY?: number);
+	constructor(options: PerspectivePlaneOptions);
+	/** Update the geometry when the texture is updated */
+	protected textureUpdated(): void;
+	set texture(value: Texture);
+	/** The texture that the mesh uses */
+	get texture(): Texture;
 	/**
-	 * Refreshes plane coordinates
-	 * @param options - Options to be applied to plane geometry
+	 * Set the corners of the quad to the given coordinates
+	 * The mesh will then calculate the perspective so it looks correct!
+	 * @param x0 - x coordinate of the first corner
+	 * @param y0 - y coordinate of the first corner
+	 * @param x1 - x coordinate of the second corner
+	 * @param y1 - y coordinate of the second corner
+	 * @param x2 - x coordinate of the third corner
+	 * @param y2 - y coordinate of the third corner
+	 * @param x3 - x coordinate of the fourth corner
+	 * @param y3 - y coordinate of the fourth corner
 	 */
-	build(options: PlaneGeometryOptions): void;
+	setCorners(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): void;
 }
+/**
+ * Apply a projective transformation to a plane geometry
+ * @param width - The width of the plane
+ * @param height - The height of the plane
+ * @param geometry - The plane geometry to apply the transformation to
+ * @param transformationMatrix - The transformation matrix to apply
+ */
+export declare function applyProjectiveTransformationToPlane(width: number, height: number, geometry: PlaneGeometry, transformationMatrix: ArrayFixed<number, 9>): void;
+type Matrix3x3 = ArrayFixed<number, 9>;
+/**
+ * Compute a 2D projection matrix
+ * @param out - The matrix to store the result in
+ * @param x1s - The x coordinate of the first source point
+ * @param y1s - The y coordinate of the first source point
+ * @param x1d - The x coordinate of the first destination point
+ * @param y1d - The y coordinate of the first destination point
+ * @param x2s - The x coordinate of the second source point
+ * @param y2s - The y coordinate of the second source point
+ * @param x2d - The x coordinate of the second destination point
+ * @param y2d - The y coordinate of the second destination point
+ * @param x3s - The x coordinate of the third source point
+ * @param y3s - The y coordinate of the third source point
+ * @param x3d - The x coordinate of the third destination point
+ * @param y3d - The y coordinate of the third destination point
+ * @param x4s - The x coordinate of the fourth source point
+ * @param y4s - The y coordinate of the fourth source point
+ * @param x4d - The x coordinate of the fourth destination point
+ * @param y4d - The y coordinate of the fourth destination point
+ * @returns - The computed 2D projection matrix
+ * @private
+ */
+export declare function compute2DProjection(out: Matrix3x3, x1s: number, y1s: number, x1d: number, y1d: number, x2s: number, y2s: number, x2d: number, y2d: number, x3s: number, y3s: number, x3d: number, y3d: number, x4s: number, y4s: number, x4d: number, y4d: number): Matrix3x3;
 /**
  * Constructor options used for `MeshRope` instances.
  * ```js
@@ -20301,6 +20694,18 @@ export declare class BatchableMesh implements BatchableObject {
 	get indexSize(): number;
 }
 export declare function getTextureDefaultMatrix(texture: Texture, out: Matrix): Matrix;
+export type AnimatedSpriteFrames = Texture[] | FrameObject[];
+/**
+ * Constructor options used for `AnimatedSprite` instances.
+ * @see {@link scene.AnimatedSprite}
+ * @memberof scene
+ */
+export interface AnimatedSpriteOptions extends SpriteOptions {
+	/** An array of {@link Texture} or frame objects that make up the animation. */
+	textures: AnimatedSpriteFrames;
+	/** Whether to use Ticker.shared to auto update animation time. */
+	autoUpdate?: boolean;
+}
 /**
  * An AnimatedSprite is a simple way to display an animation depicted by a list of textures.
  *
@@ -20398,11 +20803,14 @@ export declare class AnimatedSprite extends Sprite {
 	/** The texture index that was displayed last time. */
 	private _previousFrame;
 	/**
-	 * @param textures - An array of {@link Texture} or frame
-	 *  objects that make up the animation.
-	 * @param {boolean} [autoUpdate=true] - Whether to use Ticker.shared to auto update animation time.
+	 * @param frames - Collection of textures or frames to use.
+	 * @param autoUpdate - Whether to use Ticker.shared to auto update animation time.
 	 */
-	constructor(textures: Texture[] | FrameObject[], autoUpdate?: boolean);
+	constructor(frames: AnimatedSpriteFrames, autoUpdate?: boolean);
+	/**
+	 * @param options - The options for the AnimatedSprite.
+	 */
+	constructor(options: AnimatedSpriteOptions);
 	/** Stops the AnimatedSprite. */
 	stop(): void;
 	/** Plays the AnimatedSprite. */
@@ -20446,8 +20854,8 @@ export declare class AnimatedSprite extends Sprite {
 	 */
 	get totalFrames(): number;
 	/** The array of textures used for this AnimatedSprite. */
-	get textures(): Texture[] | FrameObject[];
-	set textures(value: Texture[] | FrameObject[]);
+	get textures(): AnimatedSpriteFrames;
+	set textures(value: AnimatedSpriteFrames);
 	/** The AnimatedSprite's current frame index. */
 	get currentFrame(): number;
 	set currentFrame(value: number);
@@ -20575,11 +20983,10 @@ export interface NineSliceSpriteOptions extends ContainerOptions {
  * const plane9 = new NineSliceSprite(Texture.from('BoxWithRoundedCorners.png'), 15, 15, 15, 15);
  * @memberof scene
  */
-export declare class NineSliceSprite extends Container implements View {
+export declare class NineSliceSprite extends ViewContainer implements View {
 	/** The default options, used to override the initial values of any options passed in the constructor. */
 	static defaultOptions: NineSliceSpriteOptions;
-	_roundPixels: 0 | 1;
-	readonly renderPipeId = "nineSliceSprite";
+	readonly renderPipeId: string;
 	_texture: Texture;
 	batched: boolean;
 	private _leftWidth;
@@ -20589,7 +20996,6 @@ export declare class NineSliceSprite extends Container implements View {
 	private _width;
 	private _height;
 	_didSpriteUpdate: boolean;
-	bounds: BoundsData;
 	/**
 	 * @param {scene.NineSliceSpriteOptions|Texture} options - Options to use
 	 * @param options.texture - The texture to use on the NineSliceSprite.
@@ -20603,6 +21009,8 @@ export declare class NineSliceSprite extends Container implements View {
 	 * setting this will actually modify the vertices and not UV's of this plane.
 	 */
 	constructor(options: NineSliceSpriteOptions | Texture);
+	/** The local bounds of the view. */
+	get bounds(): BoundsData;
 	/** The width of the NineSliceSprite, setting this will actually modify the vertices and UV's of this plane. */
 	get width(): number;
 	set width(value: number);
@@ -20624,27 +21032,16 @@ export declare class NineSliceSprite extends Container implements View {
 	/** The texture that the NineSliceSprite is using. */
 	get texture(): Texture;
 	set texture(value: Texture);
-	/**
-	 *  Whether or not to round the x/y position of the sprite.
-	 * @type {boolean}
-	 */
-	get roundPixels(): boolean;
-	set roundPixels(value: boolean);
 	/** The original width of the texture */
 	get originalWidth(): number;
 	/** The original height of the texture */
 	get originalHeight(): number;
-	onViewUpdate(): void;
+	protected onViewUpdate(): void;
 	/**
 	 * Adds the bounds of this object to the bounds object.
 	 * @param bounds - The output bounds object.
 	 */
 	addBounds(bounds: Bounds): void;
-	/**
-	 * Checks if the object contains the given point.
-	 * @param point - The point to check
-	 */
-	containsPoint(point: Point): boolean;
 	/**
 	 * Destroys this sprite renderable and optionally its texture.
 	 * @param options - Options parameter. A boolean will act as if all options
@@ -20676,6 +21073,7 @@ export declare class NineSliceSpritePipe implements RenderPipe<NineSliceSprite> 
 	};
 	private readonly _renderer;
 	private readonly _gpuSpriteHash;
+	private readonly _destroyRenderableBound;
 	constructor(renderer: Renderer);
 	addRenderable(sprite: NineSliceSprite, _instructionSet: InstructionSet): void;
 	updateRenderable(sprite: NineSliceSprite): void;
@@ -20845,7 +21243,7 @@ export declare class CanvasTextMetrics {
 	 */
 	private static _wordWrap;
 	/**
-	 * Convienience function for logging each line added during the wordWrap method.
+	 * Convenience function for logging each line added during the wordWrap method.
 	 * @param line    - The line of text to add
 	 * @param newLine - Add new line character to end
 	 * @returns A formatted line
@@ -21745,7 +22143,7 @@ export declare class Spritesheet<S extends SpritesheetData = SpritesheetData> {
 	static readonly BATCH_SIZE = 1000;
 	/** For multi-packed spritesheets, this contains a reference to all the other spritesheets it depends on. */
 	linkedSheets: Spritesheet<S>[];
-	/** Reference to ths source texture. */
+	/** Reference to the source texture. */
 	textureSource: TextureSource;
 	/**
 	 * A map containing all textures of the sprite sheet.

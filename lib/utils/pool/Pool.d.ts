@@ -49,6 +49,8 @@ export declare class Pool<T extends PoolItem> {
      * @member {number}
      */
     get totalUsed(): number;
+    /** clears the pool - mainly used for debugging! */
+    clear(): void;
 }
 /**
  * An object that can be stored in a {@link utils.Pool}.

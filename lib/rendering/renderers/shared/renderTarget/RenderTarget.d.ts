@@ -36,7 +36,8 @@ export interface RenderTargetOptions {
 export declare class RenderTarget {
     /** The default options for a render target */
     static defaultOptions: RenderTargetOptions;
-    uid: number;
+    /** unique id for this render target */
+    readonly uid: number;
     /**
      * An array of textures that can be written to by the GPU - mostly this has one texture in Pixi, but you could
      * write to multiple if required! (eg deferred lighting)

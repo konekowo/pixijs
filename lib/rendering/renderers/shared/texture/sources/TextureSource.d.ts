@@ -10,7 +10,7 @@ import type { TextureResourceOrOptions } from '../utils/textureFrom';
  */
 export interface TextureSourceOptions<T extends Record<string, any> = any> extends TextureStyleOptions {
     /**
-     * the resource that will be upladed to the GPU. This is where we get our pixels from
+     * the resource that will be uploaded to the GPU. This is where we get our pixels from
      * eg an ImageBimt / Canvas / Video etc
      */
     resource?: T;
@@ -116,7 +116,7 @@ export declare class TextureSource<T extends Record<string, any> = any> extends 
      */
     height: number;
     /**
-     * the resource that will be upladed to the GPU. This is where we get our pixels from
+     * the resource that will be uploaded to the GPU. This is where we get our pixels from
      * eg an ImageBimt / Canvas / Video etc
      */
     resource: T;

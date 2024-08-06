@@ -1,3 +1,5 @@
+import type { TextureSourceOptions } from '../../../rendering/renderers/shared/texture/sources/TextureSource';
+import type { ResolvedAsset } from '../../types';
 declare class WorkerManagerClass {
     worker: Worker;
     private _resolveHash;
@@ -8,7 +10,7 @@ declare class WorkerManagerClass {
     private _isImageBitmapSupported?;
     constructor();
     isImageBitmapSupported(): Promise<boolean>;
-    loadImageBitmap(src: string): Promise<ImageBitmap>;
+    loadImageBitmap(src: string, asset?: ResolvedAsset<TextureSourceOptions<any>>): Promise<ImageBitmap>;
     private _initWorkers;
     private _getWorker;
     private _returnWorker;

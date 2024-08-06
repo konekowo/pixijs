@@ -12,6 +12,7 @@ export interface LinearGradientFillStyle {
 }
 export declare class FillGradient implements CanvasGradient {
     static defaultTextureSize: number;
+    /** unique id for this fill gradient */
     readonly uid: number;
     readonly type: GradientType;
     x0: number;

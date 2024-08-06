@@ -2,10 +2,10 @@ import { type ColorSource } from '../../../../color/Color';
 import { ExtensionType } from '../../../../extensions/Extensions';
 import { Rectangle } from '../../../../maths/shapes/Rectangle';
 import { Container } from '../../../../scene/container/Container';
+import { RenderTexture } from '../texture/RenderTexture';
 import type { Renderer } from '../../types';
 import type { System } from '../system/System';
 import type { TextureSourceOptions } from '../texture/sources/TextureSource';
-import type { Texture } from '../texture/Texture';
 export type GenerateTextureSourceOptions = Omit<TextureSourceOptions, 'resource' | 'width' | 'height' | 'resolution'>;
 /**
  * Options for generating a texture from a container.
@@ -54,6 +54,6 @@ export declare class GenerateTextureSystem implements System {
      * @param {GenerateTextureSourceOptions} [options.textureSourceOptions] - Texture options for GPU.
      * @returns a shiny new texture of the container passed in
      */
-    generateTexture(options: GenerateTextureOptions | Container): Texture;
+    generateTexture(options: GenerateTextureOptions | Container): RenderTexture;
     destroy(): void;
 }

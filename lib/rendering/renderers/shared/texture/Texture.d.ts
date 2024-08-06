@@ -77,7 +77,7 @@ export type TextureSourceLike = TextureSource | TextureResourceOrOptions | strin
  *
  * // once Assets has loaded the image it will be available via the from method
  * const sameTexture = Texture.from('assets/image.png');
- * // another way to acces the texture once loaded
+ * // another way to access the texture once loaded
  * const sameAgainTexture = Asset.get('assets/image.png');
  *
  * const sprite1 = new Sprite(texture);
@@ -117,7 +117,7 @@ export declare class Texture extends EventEmitter<{
     /** label used for debugging */
     label?: string;
     /** unique id for this texture */
-    uid: number;
+    readonly uid: number;
     /**
      * Has the texture been destroyed?
      * @readonly
@@ -184,7 +184,7 @@ export declare class Texture extends EventEmitter<{
     /** is it a texture? yes! used for type checking */
     readonly isTexture = true;
     /**
-     * @param {TextureOptions} param0 - Options for the texture
+     * @param {rendering.TextureOptions} options - Options for the texture
      */
     constructor({ source, label, frame, orig, trim, defaultAnchor, defaultBorders, rotate, dynamic }?: TextureOptions);
     set source(value: TextureSource);

@@ -28,6 +28,7 @@ export declare class GraphicsPipe implements RenderPipe<Graphics> {
     state: State;
     private _graphicsBatchesHash;
     private _adaptor;
+    private readonly _destroyRenderableBound;
     constructor(renderer: GraphicsSystem, adaptor: GraphicsAdaptor);
     validateRenderable(graphics: Graphics): boolean;
     addRenderable(graphics: Graphics, instructionSet: InstructionSet): void;

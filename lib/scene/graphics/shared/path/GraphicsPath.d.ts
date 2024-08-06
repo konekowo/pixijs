@@ -16,7 +16,8 @@ export interface PathInstruction {
  */
 export declare class GraphicsPath {
     instructions: PathInstruction[];
-    uid: number;
+    /** unique id for this graphics path */
+    readonly uid: number;
     private _dirty;
     private _shapePath;
     /**

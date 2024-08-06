@@ -1,7 +1,6 @@
 import { Filter } from '../../Filter';
 import { BlurFilterPass } from './BlurFilterPass';
 import type { RenderSurface } from '../../../rendering/renderers/shared/renderTarget/RenderTargetSystem';
-import type { BLEND_MODES } from '../../../rendering/renderers/shared/state/const';
 import type { Texture } from '../../../rendering/renderers/shared/texture/Texture';
 import type { FilterOptions } from '../../Filter';
 import type { FilterSystem } from '../../FilterSystem';
@@ -15,6 +14,16 @@ export interface BlurFilterOptions extends FilterOptions {
      * @default 8
      */
     strength?: number;
+    /**
+     * The horizontal strength of the blur.
+     * @default 8
+     */
+    strengthX?: number;
+    /**
+     * The vertical strength of the blur.
+     * @default 8
+     */
+    strengthY?: number;
     /**
      * The quality of the blur filter.
      * @default 4
@@ -45,7 +54,7 @@ export declare class BlurFilter extends Filter {
      */
     constructor(options?: BlurFilterOptions);
     /** @deprecated since 8.0.0 */
-    constructor(strength?: number, quality?: number, resolution?: number, kernelSize?: number);
+    constructor(strength?: number, quality?: number, resolution?: number | null, kernelSize?: number);
     /**
      * Applies the filter.
      * @param filterManager - The manager.
@@ -57,10 +66,10 @@ export declare class BlurFilter extends Filter {
     protected updatePadding(): void;
     /**
      * Sets the strength of both the blurX and blurY properties simultaneously
-     * @default 2
+     * @default 8
      */
-    get blur(): number;
-    set blur(value: number);
+    get strength(): number;
+    set strength(value: number);
     /**
      * Sets the number of passes for blur. More passes means higher quality bluring.
      * @default 1
@@ -68,23 +77,41 @@ export declare class BlurFilter extends Filter {
     get quality(): number;
     set quality(value: number);
     /**
+     * Sets the strength of horizontal blur
+     * @default 8
+     */
+    get strengthX(): number;
+    set strengthX(value: number);
+    /**
+     * Sets the strength of the vertical blur
+     * @default 8
+     */
+    get strengthY(): number;
+    set strengthY(value: number);
+    /**
+     * Sets the strength of both the blurX and blurY properties simultaneously
+     * @default 2
+     * @deprecated since 8.3.0
+     * @see BlurFilter.strength
+     */
+    get blur(): number;
+    set blur(value: number);
+    /**
      * Sets the strength of the blurX property
      * @default 2
+     * @deprecated since 8.3.0
+     * @see BlurFilter.strengthX
      */
     get blurX(): number;
     set blurX(value: number);
     /**
      * Sets the strength of the blurY property
      * @default 2
+     * @deprecated since 8.3.0
+     * @see BlurFilter.strengthY
      */
     get blurY(): number;
     set blurY(value: number);
-    /**
-     * Sets the blendmode of the filter
-     * @default "normal"
-     */
-    get blendMode(): BLEND_MODES;
-    set blendMode(value: BLEND_MODES);
     /**
      * If set to true the edge of the target will be clamped
      * @default false

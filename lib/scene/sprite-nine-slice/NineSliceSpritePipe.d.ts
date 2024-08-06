@@ -11,6 +11,7 @@ export declare class NineSliceSpritePipe implements RenderPipe<NineSliceSprite> 
     };
     private readonly _renderer;
     private readonly _gpuSpriteHash;
+    private readonly _destroyRenderableBound;
     constructor(renderer: Renderer);
     addRenderable(sprite: NineSliceSprite, _instructionSet: InstructionSet): void;
     updateRenderable(sprite: NineSliceSprite): void;

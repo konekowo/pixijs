@@ -25,8 +25,7 @@ export declare abstract class PrepareBase {
     /** Timeout id for next processing call */
     protected timeout?: number;
     /**
-     * * @param {Renderer} renderer - A reference to the current renderer
-     * @param renderer
+     * @param {rendering.Renderer} renderer - A reference to the current renderer
      */
     constructor(renderer: Renderer);
     /** Resolve the given resource type and return an item for the queue */

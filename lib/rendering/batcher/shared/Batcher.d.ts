@@ -58,6 +58,8 @@ export interface BatcherOptions {
     vertexSize?: number;
     /** The size of the index buffer. */
     indexSize?: number;
+    /** The maximum number of textures per batch. */
+    maxTextures?: number;
 }
 /**
  * A batcher is used to batch together objects with the same texture.
@@ -65,7 +67,8 @@ export interface BatcherOptions {
  */
 export declare class Batcher {
     static defaultOptions: BatcherOptions;
-    uid: number;
+    /** unique id for this batcher */
+    readonly uid: number;
     attributeBuffer: ViewableBuffer;
     indexBuffer: IndexBufferArray;
     attributeSize: number;
@@ -77,13 +80,10 @@ export declare class Batcher {
     batches: Batch[];
     private readonly _vertexSize;
     private _elements;
-    private readonly _batchPool;
-    private _batchPoolIndex;
-    private readonly _textureBatchPool;
-    private _textureBatchPoolIndex;
     private _batchIndexStart;
     private _batchIndexSize;
-    private readonly _maxTextures;
+    /** The maximum number of textures per batch. */
+    readonly maxTextures: number;
     constructor(options?: BatcherOptions);
     begin(): void;
     add(batchableObject: BatchableObject): void;

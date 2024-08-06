@@ -40,6 +40,15 @@ export declare class GpuTextureSystem implements System, CanvasGenerator {
     private _initSampler;
     getGpuSampler(sampler: TextureStyle): GPUSampler;
     getGpuSource(source: TextureSource): GPUTexture;
+    /**
+     * this returns s bind group for a specific texture, the bind group contains
+     * - the texture source
+     * - the texture style
+     * - the texture matrix
+     * This is cached so the bind group should only be created once per texture
+     * @param texture - the texture you want the bindgroup for
+     * @returns the bind group for the texture
+     */
     getTextureBindGroup(texture: Texture): BindGroup;
     private _createTextureBindGroup;
     getTextureView(texture: BindableTexture): GPUTextureView;

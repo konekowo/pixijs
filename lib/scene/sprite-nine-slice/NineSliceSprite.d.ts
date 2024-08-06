@@ -1,6 +1,5 @@
 import { Texture } from '../../rendering/renderers/shared/texture/Texture';
-import { Container } from '../container/Container';
-import type { Point } from '../../maths/point/Point';
+import { ViewContainer } from '../view/View';
 import type { View } from '../../rendering/renderers/shared/view/View';
 import type { Bounds, BoundsData } from '../container/bounds/Bounds';
 import type { ContainerOptions } from '../container/Container';
@@ -64,11 +63,10 @@ export interface NineSliceSpriteOptions extends ContainerOptions {
  * const plane9 = new NineSliceSprite(Texture.from('BoxWithRoundedCorners.png'), 15, 15, 15, 15);
  * @memberof scene
  */
-export declare class NineSliceSprite extends Container implements View {
+export declare class NineSliceSprite extends ViewContainer implements View {
     /** The default options, used to override the initial values of any options passed in the constructor. */
     static defaultOptions: NineSliceSpriteOptions;
-    _roundPixels: 0 | 1;
-    readonly renderPipeId = "nineSliceSprite";
+    readonly renderPipeId: string;
     _texture: Texture;
     batched: boolean;
     private _leftWidth;
@@ -78,7 +76,6 @@ export declare class NineSliceSprite extends Container implements View {
     private _width;
     private _height;
     _didSpriteUpdate: boolean;
-    bounds: BoundsData;
     /**
      * @param {scene.NineSliceSpriteOptions|Texture} options - Options to use
      * @param options.texture - The texture to use on the NineSliceSprite.
@@ -92,6 +89,8 @@ export declare class NineSliceSprite extends Container implements View {
      * setting this will actually modify the vertices and not UV's of this plane.
      */
     constructor(options: NineSliceSpriteOptions | Texture);
+    /** The local bounds of the view. */
+    get bounds(): BoundsData;
     /** The width of the NineSliceSprite, setting this will actually modify the vertices and UV's of this plane. */
     get width(): number;
     set width(value: number);
@@ -113,27 +112,16 @@ export declare class NineSliceSprite extends Container implements View {
     /** The texture that the NineSliceSprite is using. */
     get texture(): Texture;
     set texture(value: Texture);
-    /**
-     *  Whether or not to round the x/y position of the sprite.
-     * @type {boolean}
-     */
-    get roundPixels(): boolean;
-    set roundPixels(value: boolean);
     /** The original width of the texture */
     get originalWidth(): number;
     /** The original height of the texture */
     get originalHeight(): number;
-    onViewUpdate(): void;
+    protected onViewUpdate(): void;
     /**
      * Adds the bounds of this object to the bounds object.
      * @param bounds - The output bounds object.
      */
     addBounds(bounds: Bounds): void;
-    /**
-     * Checks if the object contains the given point.
-     * @param point - The point to check
-     */
-    containsPoint(point: Point): boolean;
     /**
      * Destroys this sprite renderable and optionally its texture.
      * @param options - Options parameter. A boolean will act as if all options

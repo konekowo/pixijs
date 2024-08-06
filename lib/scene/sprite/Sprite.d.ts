@@ -1,10 +1,9 @@
 import { ObservablePoint } from '../../maths/point/ObservablePoint';
 import { Texture } from '../../rendering/renderers/shared/texture/Texture';
-import { Container } from '../container/Container';
+import { ViewContainer } from '../view/View';
 import type { Size } from '../../maths/misc/Size';
 import type { PointData } from '../../maths/point/PointData';
 import type { TextureSourceLike } from '../../rendering/renderers/shared/texture/Texture';
-import type { View } from '../../rendering/renderers/shared/view/View';
 import type { Bounds, BoundsData } from '../container/bounds/Bounds';
 import type { ContainerOptions } from '../container/Container';
 import type { Optional } from '../container/container-mixins/measureMixin';
@@ -45,9 +44,7 @@ export interface SpriteOptions extends ContainerOptions {
  * @memberof scene
  * @extends scene.Container
  */
-export declare class Sprite extends Container implements View {
-    private _width;
-    private _height;
+export declare class Sprite extends ViewContainer {
     /**
      * Helper function that creates a new sprite based on the source you provide.
      * The source can be - frame id, image, video, canvas element, video element, texture
@@ -56,16 +53,15 @@ export declare class Sprite extends Container implements View {
      * @returns The newly created sprite
      */
     static from(source: Texture | TextureSourceLike, skipCache?: boolean): Sprite;
-    readonly renderPipeId = "sprite";
+    readonly renderPipeId: string;
     batched: boolean;
     readonly _anchor: ObservablePoint;
     _texture: Texture;
     _didSpriteUpdate: boolean;
-    private readonly _bounds;
     private readonly _sourceBounds;
-    private _boundsDirty;
     private _sourceBoundsDirty;
-    _roundPixels: 0 | 1;
+    private _width;
+    private _height;
     /**
      * @param options - The options for creating the sprite.
      */
@@ -77,7 +73,7 @@ export declare class Sprite extends Container implements View {
      * The local bounds of the sprite.
      * @type {rendering.Bounds}
      */
-    get bounds(): BoundsData;
+    get bounds(): Bounds;
     /**
      * The bounds of the sprite, taking the texture's trim into account.
      * @type {rendering.Bounds}
@@ -94,7 +90,7 @@ export declare class Sprite extends Container implements View {
      */
     addBounds(bounds: Bounds): void;
     onViewUpdate(): void;
-    private _updateBounds;
+    protected _updateBounds(): void;
     private _updateSourceBounds;
     /**
      * Destroys this sprite renderable and optionally its texture.
@@ -123,12 +119,6 @@ export declare class Sprite extends Container implements View {
      */
     get anchor(): ObservablePoint;
     set anchor(value: PointData | number);
-    /**
-     *  Whether or not to round the x/y position of the sprite.
-     * @type {boolean}
-     */
-    get roundPixels(): boolean;
-    set roundPixels(value: boolean);
     /** The width of the sprite, setting this will actually modify the scale to achieve the value set. */
     get width(): number;
     set width(value: number);

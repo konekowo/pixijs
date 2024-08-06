@@ -1,5 +1,6 @@
 import { ExtensionType } from '../../../extensions/Extensions';
-import { BatchGeometry } from '../../../rendering/batcher/gpu/BatchGeometry';
+import { Batcher } from '../../../rendering/batcher/shared/Batcher';
+import { BatchGeometry } from '../../../rendering/batcher/shared/BatchGeometry';
 import { InstructionSet } from '../../../rendering/renderers/shared/instructions/InstructionSet';
 import type { System } from '../../../rendering/renderers/shared/system/System';
 import type { BatchableGraphics } from './BatchableGraphics';
@@ -17,6 +18,7 @@ interface GeometryData {
 export declare class GpuGraphicsContext {
     isBatchable: boolean;
     context: GraphicsContext;
+    batcher: Batcher;
     batches: BatchableGraphics[];
     geometryData: GeometryData;
     graphicsData: GraphicsContextRenderData;
@@ -51,7 +53,6 @@ export declare class GraphicsContextSystem implements System<GraphicsContextSyst
     };
     /** The default options for the GraphicsContextSystem. */
     static readonly defaultOptions: GraphicsContextSystemOptions;
-    private readonly _activeBatchers;
     private _gpuContextHash;
     private _graphicsDataContextHash;
     /**
@@ -59,11 +60,9 @@ export declare class GraphicsContextSystem implements System<GraphicsContextSyst
      * @ignore
      */
     init(options?: GraphicsContextSystemOptions): void;
-    protected prerender(): void;
     getContextRenderData(context: GraphicsContext): GraphicsContextRenderData;
     updateGpuContext(context: GraphicsContext): GpuGraphicsContext;
     getGpuContext(context: GraphicsContext): GpuGraphicsContext;
-    private _returnActiveBatchers;
     private _initContextRenderData;
     private _initContext;
     protected onGraphicsContextDestroy(context: GraphicsContext): void;

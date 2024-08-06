@@ -77,8 +77,6 @@ export interface ContainerOptions<C extends ContainerChild = ContainerChild> ext
     skew?: PointData;
     /** @see scene.Container#visible */
     visible?: boolean;
-    /** @see scene.Container#culled */
-    culled?: boolean;
     /** @see scene.Container#x */
     x?: number;
     /** @see scene.Container#y */
@@ -285,8 +283,8 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
      * @param source - The source of properties and methods to mix in.
      */
     static mixin(source: Dict<any>): void;
-    /** @private */
-    uid: number;
+    /** unique id for this container */
+    readonly uid: number;
     /** @private */
     _updateFlags: number;
     /** @private */
@@ -419,7 +417,7 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
      * This property holds three bits: culled, visible, renderable
      * the third bit represents culling (0 = culled, 1 = not culled) 0b100
      * the second bit represents visibility (0 = not visible, 1 = visible) 0b010
-     * the first bit represents renderable (0 = renderable, 1 = not renderable) 0b001
+     * the first bit represents renderable (0 = not renderable, 1 = renderable) 0b001
      * @internal
      * @ignore
      */
@@ -429,7 +427,7 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
      * @ignore
      */
     globalDisplayStatus: number;
-    renderPipeId: string;
+    readonly renderPipeId: string;
     /**
      * An optional bounds area for this container. Setting this rectangle will stop the renderer
      * from recursively measuring the bounds of each children and instead use this single boundArea.
@@ -439,17 +437,24 @@ export declare class Container<C extends ContainerChild = ContainerChild> extend
      */
     boundsArea: Rectangle;
     /**
-     * A value that increments each time the container is modified
-     * the first 12 bits represent the container changes (eg transform, alpha, visible etc)
-     * the second 12 bits represent:
-     *      - for view changes (eg texture swap, geometry change etc)
-     *      - containers changes (eg children added, removed etc)
-     *
-     *  view          container
-     * [000000000000][00000000000]
+     * A value that increments each time the containe is modified
+     * eg children added, removed etc
      * @ignore
      */
-    _didChangeId: number;
+    _didContainerChangeTick: number;
+    /**
+     * A value that increments each time the container view is modified
+     * eg texture swap, geometry change etc
+     * @ignore
+     */
+    _didViewChangeTick: number;
+    /**
+     * We now use the _didContainerChangeTick and _didViewChangeTick to track changes
+     * @deprecated since 8.2.6
+     * @ignore
+     */
+    set _didChangeId(value: number);
+    get _didChangeId(): number;
     /**
      * property that tracks if the container transform has changed
      * @ignore

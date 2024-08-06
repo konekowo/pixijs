@@ -1,6 +1,19 @@
 import { Texture } from '../../rendering/renderers/shared/texture/Texture';
 import { Ticker } from '../../ticker/Ticker';
 import { Sprite } from '../sprite/Sprite';
+import type { SpriteOptions } from '../sprite/Sprite';
+export type AnimatedSpriteFrames = Texture[] | FrameObject[];
+/**
+ * Constructor options used for `AnimatedSprite` instances.
+ * @see {@link scene.AnimatedSprite}
+ * @memberof scene
+ */
+export interface AnimatedSpriteOptions extends SpriteOptions {
+    /** An array of {@link Texture} or frame objects that make up the animation. */
+    textures: AnimatedSpriteFrames;
+    /** Whether to use Ticker.shared to auto update animation time. */
+    autoUpdate?: boolean;
+}
 /**
  * An AnimatedSprite is a simple way to display an animation depicted by a list of textures.
  *
@@ -98,11 +111,14 @@ export declare class AnimatedSprite extends Sprite {
     /** The texture index that was displayed last time. */
     private _previousFrame;
     /**
-     * @param textures - An array of {@link Texture} or frame
-     *  objects that make up the animation.
-     * @param {boolean} [autoUpdate=true] - Whether to use Ticker.shared to auto update animation time.
+     * @param frames - Collection of textures or frames to use.
+     * @param autoUpdate - Whether to use Ticker.shared to auto update animation time.
      */
-    constructor(textures: Texture[] | FrameObject[], autoUpdate?: boolean);
+    constructor(frames: AnimatedSpriteFrames, autoUpdate?: boolean);
+    /**
+     * @param options - The options for the AnimatedSprite.
+     */
+    constructor(options: AnimatedSpriteOptions);
     /** Stops the AnimatedSprite. */
     stop(): void;
     /** Plays the AnimatedSprite. */
@@ -146,8 +162,8 @@ export declare class AnimatedSprite extends Sprite {
      */
     get totalFrames(): number;
     /** The array of textures used for this AnimatedSprite. */
-    get textures(): Texture[] | FrameObject[];
-    set textures(value: Texture[] | FrameObject[]);
+    get textures(): AnimatedSpriteFrames;
+    set textures(value: AnimatedSpriteFrames);
     /** The AnimatedSprite's current frame index. */
     get currentFrame(): number;
     set currentFrame(value: number);

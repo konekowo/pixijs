@@ -98,7 +98,7 @@ export declare class Application<R extends Renderer = Renderer> {
     stage: Container;
     /**
      * WebGL renderer if available, otherwise CanvasRenderer.
-     * @member {Renderer}
+     * @member {rendering.Renderer}
      */
     renderer: R;
     /** Create new Application instance */

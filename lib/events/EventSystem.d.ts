@@ -35,7 +35,7 @@ export interface EventSystemOptions {
  * @since 7.2.0
  * @memberof events
  */
-interface EventSystemFeatures {
+export interface EventSystemFeatures {
     /**
      * Enables pointer events associated with pointer movement:
      * - `pointermove` / `mousemove` / `touchmove`
@@ -250,4 +250,3 @@ export declare class EventSystem implements System<EventSystemOptions> {
      */
     private _transferMouseData;
 }
-export {};

@@ -186,7 +186,7 @@ export declare class Spritesheet<S extends SpritesheetData = SpritesheetData> {
     static readonly BATCH_SIZE = 1000;
     /** For multi-packed spritesheets, this contains a reference to all the other spritesheets it depends on. */
     linkedSheets: Spritesheet<S>[];
-    /** Reference to ths source texture. */
+    /** Reference to the source texture. */
     textureSource: TextureSource;
     /**
      * A map containing all textures of the sprite sheet.

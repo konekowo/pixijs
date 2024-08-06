@@ -43,7 +43,7 @@ export declare class GpuEncoderSystem implements System {
     private _setIndexBuffer;
     resetBindGroup(index: number): void;
     setBindGroup(index: number, bindGroup: BindGroup, program: GpuProgram): void;
-    setGeometry(geometry: Geometry): void;
+    setGeometry(geometry: Geometry, program: GpuProgram): void;
     private _setShaderBindGroups;
     private _syncBindGroup;
     draw(options: {

@@ -11,6 +11,7 @@ export declare class SpritePipe implements RenderPipe<Sprite> {
     };
     private _renderer;
     private _gpuSpriteHash;
+    private readonly _destroyRenderableBound;
     constructor(renderer: Renderer);
     addRenderable(sprite: Sprite, _instructionSet: InstructionSet): void;
     updateRenderable(sprite: Sprite): void;

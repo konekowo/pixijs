@@ -1,11 +1,10 @@
-import { Container } from '../../container/Container';
+import { ViewContainer } from '../../view/View';
 import { GraphicsContext } from './GraphicsContext';
 import type { ColorSource } from '../../../color/Color';
 import type { Matrix } from '../../../maths/matrix/Matrix';
 import type { PointData } from '../../../maths/point/PointData';
 import type { Instruction } from '../../../rendering/renderers/shared/instructions/Instruction';
 import type { Texture } from '../../../rendering/renderers/shared/texture/Texture';
-import type { View } from '../../../rendering/renderers/shared/view/View';
 import type { Bounds } from '../../container/bounds/Bounds';
 import type { ContainerOptions } from '../../container/Container';
 import type { DestroyOptions } from '../../container/destroyTypes';
@@ -36,11 +35,9 @@ export interface GraphicsOptions extends ContainerOptions {
  * @memberof scene
  * @extends scene.Container
  */
-export declare class Graphics extends Container implements View, Instruction {
-    readonly canBundle = true;
-    readonly renderPipeId = "graphics";
+export declare class Graphics extends ViewContainer implements Instruction {
+    readonly renderPipeId: string;
     batched: boolean;
-    _roundPixels: 0 | 1;
     _didGraphicsUpdate: boolean;
     private _context;
     private readonly _ownedContext;
@@ -65,12 +62,6 @@ export declare class Graphics extends Container implements View, Instruction {
      * @param point - The point to check
      */
     containsPoint(point: PointData): boolean;
-    /**
-     *  Whether or not to round the x/y position of the graphic.
-     * @type {boolean}
-     */
-    get roundPixels(): boolean;
-    set roundPixels(value: boolean);
     protected onViewUpdate(): void;
     /**
      * Destroys this graphics renderable and optionally its context.

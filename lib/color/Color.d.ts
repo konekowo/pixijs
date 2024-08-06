@@ -250,14 +250,14 @@ export declare class Color {
      */
     toPremultiplied(alpha: number, applyToRGB?: boolean): number;
     /**
-     * Convert to a hexidecimal string.
+     * Convert to a hexadecimal string.
      * @example
      * import { Color } from 'pixi.js';
      * new Color('white').toHex(); // returns "#ffffff"
      */
     toHex(): string;
     /**
-     * Convert to a hexidecimal string with alpha.
+     * Convert to a hexadecimal string with alpha.
      * @example
      * import { Color } from 'pixi.js';
      * new Color('white').toHexa(); // returns "#ffffffff"

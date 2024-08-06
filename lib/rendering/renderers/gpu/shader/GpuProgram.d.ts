@@ -2,7 +2,7 @@
 import type { ExtractedAttributeData } from '../../gl/shader/program/extractAttributesFromGlProgram';
 import type { StructsAndGroups } from './utils/extractStructAndGroups';
 /**
- * a WebGPU descriptions of how the program is layed out
+ * a WebGPU descriptions of how the program is laid out
  * @see https://gpuweb.github.io/gpuweb/#gpupipelinelayout
  * @memberof rendering
  */
@@ -111,6 +111,11 @@ export declare class GpuProgram {
      * @ignore
      */
     _layoutKey: number;
+    /**
+     * @internal
+     * @ignore
+     */
+    _attributeLocationsKey: number;
     /** the structs and groups extracted from the shader sources */
     readonly structsAndGroups: StructsAndGroups;
     /**

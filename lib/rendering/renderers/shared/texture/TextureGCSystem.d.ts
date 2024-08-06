@@ -17,11 +17,17 @@ export interface TextureGCSystemOptions {
      */
     textureGCActive: boolean;
     /**
+     * @deprecated since 8.3.0
+     * @see {@link TextureGCSystem.textureGCMaxIdle}
+     * @memberof rendering.SharedRendererOptions
+     */
+    textureGCAMaxIdle: number;
+    /**
      * The maximum idle frames before a texture is destroyed by garbage collection.
      * @default 60 * 60
      * @memberof rendering.SharedRendererOptions
      */
-    textureGCAMaxIdle: number;
+    textureGCMaxIdle: number;
     /**
      * Frames between two garbage collections.
      * @default 600

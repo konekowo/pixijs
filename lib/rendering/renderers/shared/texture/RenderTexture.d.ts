@@ -6,7 +6,7 @@ import type { TextureSourceOptions } from './sources/TextureSource';
  * @memberof rendering
  */
 export declare class RenderTexture extends Texture {
-    static create(options: TextureSourceOptions): Texture;
+    static create(options: TextureSourceOptions): RenderTexture;
     /**
      * Resizes the render texture.
      * @param width - The new width of the render texture.

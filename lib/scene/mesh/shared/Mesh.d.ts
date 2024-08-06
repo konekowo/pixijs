@@ -1,7 +1,7 @@
 import { Geometry } from '../../../rendering/renderers/shared/geometry/Geometry';
 import { State } from '../../../rendering/renderers/shared/state/State';
 import { Texture } from '../../../rendering/renderers/shared/texture/Texture';
-import { Container } from '../../container/Container';
+import { ViewContainer } from '../../view/View';
 import { MeshGeometry } from './MeshGeometry';
 import type { PointData } from '../../../maths/point/PointData';
 import type { Topology } from '../../../rendering/renderers/shared/geometry/const';
@@ -41,7 +41,7 @@ export interface MeshOptions<GEOMETRY extends Geometry = MeshGeometry, SHADER ex
      * Represents the vertex and fragment shaders that processes the geometry and runs on the GPU.
      * Can be shared between multiple Mesh objects.
      */
-    shader?: SHADER;
+    shader?: SHADER | null;
     /** The state of WebGL required to render the mesh. */
     state?: State;
     /** The texture that the Mesh uses. Null for non-MeshMaterial shaders */
@@ -64,37 +64,29 @@ export interface MeshOptions<GEOMETRY extends Geometry = MeshGeometry, SHADER ex
  * Through a combination of the above elements you can render anything you want, 2D or 3D!
  * @memberof scene
  */
-export declare class Mesh<GEOMETRY extends Geometry = MeshGeometry, SHADER extends Shader = TextureShader> extends Container implements View, Instruction {
-    readonly renderPipeId = "mesh";
-    readonly canBundle = true;
+export declare class Mesh<GEOMETRY extends Geometry = MeshGeometry, SHADER extends Shader = TextureShader> extends ViewContainer implements View, Instruction {
+    readonly renderPipeId: string;
     state: State;
     /** @ignore */
     _texture: Texture;
     /** @ignore */
     _geometry: GEOMETRY;
     /** @ignore */
-    _shader?: SHADER;
-    _roundPixels: 0 | 1;
+    _shader: SHADER | null;
     /**
      * @param {scene.MeshOptions} options - options for the mesh instance
      */
     constructor(options: MeshOptions<GEOMETRY, SHADER>);
     /** @deprecated since 8.0.0 */
     constructor(geometry: GEOMETRY, shader: SHADER, state?: State, drawMode?: Topology);
-    /**
-     *  Whether or not to round the x/y position of the mesh.
-     * @type {boolean}
-     */
-    get roundPixels(): boolean;
-    set roundPixels(value: boolean);
     /** Alias for {@link scene.Mesh#shader}. */
     get material(): SHADER;
     /**
      * Represents the vertex and fragment shaders that processes the geometry and runs on the GPU.
      * Can be shared between multiple Mesh objects.
      */
-    set shader(value: SHADER);
-    get shader(): SHADER;
+    set shader(value: SHADER | null);
+    get shader(): SHADER | null;
     /**
      * Includes vertex positions, face indices, colors, UVs, and
      * custom attributes within buffers, reducing the cost of passing all

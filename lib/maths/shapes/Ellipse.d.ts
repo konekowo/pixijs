@@ -65,9 +65,10 @@ export declare class Ellipse implements ShapePrimitive {
     strokeContains(x: number, y: number, width: number): boolean;
     /**
      * Returns the framing rectangle of the ellipse as a Rectangle object
+     * @param out
      * @returns The framing rectangle
      */
-    getBounds(): Rectangle;
+    getBounds(out?: Rectangle): Rectangle;
     /**
      * Copies another ellipse to this one.
      * @param ellipse - The ellipse to copy from.

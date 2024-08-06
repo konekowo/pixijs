@@ -12,6 +12,7 @@ export declare class TilingSpritePipe implements RenderPipe<TilingSprite> {
     private _renderer;
     private readonly _state;
     private readonly _tilingSpriteDataHash;
+    private readonly _destroyRenderableBound;
     constructor(renderer: Renderer);
     validateRenderable(renderable: TilingSprite): boolean;
     addRenderable(tilingSprite: TilingSprite, instructionSet: InstructionSet): void;

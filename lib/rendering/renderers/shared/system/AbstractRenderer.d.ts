@@ -110,7 +110,7 @@ type Runners = {
  * @property {rendering.AccessibilitySystem} accessibility - AccessibilitySystem instance. Requires `import 'pixi.js/accessibility'`.
  */
 export declare class AbstractRenderer<PIPES, OPTIONS extends SharedRendererOptions, CANVAS extends ICanvas = HTMLCanvasElement> extends EventEmitter<{
-    resize: [number, number];
+    resize: [screenWidth: number, screenHeight: number, resolution: number];
 }> {
     /** The default options for the renderer. */
     static defaultOptions: {
@@ -261,7 +261,7 @@ export declare class AbstractRenderer<PIPES, OPTIONS extends SharedRendererOptio
      */
     get roundPixels(): boolean;
     /**
-     * Overrideable function by `pixi.js/unsafe-eval` to silence
+     * Overridable function by `pixi.js/unsafe-eval` to silence
      * throwing an error if platform doesn't support unsafe-evals.
      * @private
      * @ignore

@@ -3,4 +3,4 @@ interface MessageData {
     uuid: number;
     id: string;
 }
-declare function loadImageBitmap(url: string): Promise<ImageBitmap>;
+declare function loadImageBitmap(url: string, alphaMode?: string): Promise<ImageBitmap>;

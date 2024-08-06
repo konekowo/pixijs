@@ -1,9 +1,9 @@
 import { ObservablePoint } from '../../maths/point/ObservablePoint';
-import { Bounds } from '../container/bounds/Bounds';
-import { Container } from '../container/Container';
+import { ViewContainer } from '../view/View';
 import type { Size } from '../../maths/misc/Size';
 import type { PointData } from '../../maths/point/PointData';
 import type { View } from '../../rendering/renderers/shared/view/View';
+import type { Bounds } from '../container/bounds/Bounds';
 import type { ContainerOptions } from '../container/Container';
 import type { Optional } from '../container/container-mixins/measureMixin';
 import type { DestroyOptions } from '../container/destroyTypes';
@@ -73,17 +73,13 @@ export interface TextOptions<TEXT_STYLE extends TextStyle = TextStyle, TEXT_STYL
  * @see scene.HTMLText
  * @memberof scene
  */
-export declare abstract class AbstractText<TEXT_STYLE extends TextStyle = TextStyle, TEXT_STYLE_OPTIONS extends TextStyleOptions = TextStyleOptions> extends Container implements View {
-    abstract readonly renderPipeId: string;
+export declare abstract class AbstractText<TEXT_STYLE extends TextStyle = TextStyle, TEXT_STYLE_OPTIONS extends TextStyleOptions = TextStyleOptions> extends ViewContainer implements View {
     batched: boolean;
     _anchor: ObservablePoint;
     _resolution: number;
     _autoResolution: boolean;
     _style: TEXT_STYLE;
     _didTextUpdate: boolean;
-    _roundPixels: 0 | 1;
-    protected _bounds: Bounds;
-    protected _boundsDirty: boolean;
     protected _text: string;
     private readonly _styleClass;
     constructor(options: TextOptions<TEXT_STYLE, TEXT_STYLE_OPTIONS>, styleClass: new (options: TEXT_STYLE_OPTIONS) => TEXT_STYLE);
@@ -104,12 +100,6 @@ export declare abstract class AbstractText<TEXT_STYLE extends TextStyle = TextSt
      */
     get anchor(): ObservablePoint;
     set anchor(value: PointData | number);
-    /**
-     *  Whether or not to round the x/y position of the text.
-     * @type {boolean}
-     */
-    get roundPixels(): boolean;
-    set roundPixels(value: boolean);
     /** Set the copy for the text object. To split a line you can use '\n'. */
     set text(value: TextString);
     get text(): string;

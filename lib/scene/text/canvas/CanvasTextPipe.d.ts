@@ -13,6 +13,7 @@ export declare class CanvasTextPipe implements RenderPipe<Text> {
     };
     private _renderer;
     private _gpuText;
+    private readonly _destroyRenderableBound;
     constructor(renderer: Renderer);
     resolutionChange(): void;
     validateRenderable(text: Text): boolean;

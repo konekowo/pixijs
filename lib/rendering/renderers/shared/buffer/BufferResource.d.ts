@@ -29,11 +29,7 @@ export declare class BufferResource extends EventEmitter<{
      * letting the renderer know that it needs to discard the old buffer on the GPU and create a new one
      * @event change
      */
-    /**
-     * a unique id for this uniform group used through the renderer
-     * @internal
-     * @ignore
-     */
+    /** a unique id for this uniform group used through the renderer */
     readonly uid: number;
     /**
      * a resource type, used to identify how to handle it when its in a bind group / shader resource

@@ -1,5 +1,8 @@
 import type { Attribute } from '../../../shared/geometry/Geometry';
-export type ExtractedAttributeData = Omit<Attribute, 'buffer'>;
+export interface ExtractedAttributeData extends Omit<Attribute, 'buffer'> {
+    /** set where the shader location is for this attribute */
+    location?: number;
+}
 /**
  * returns the attribute data from the program
  * @private

@@ -56,7 +56,8 @@ export declare class GraphicsContext extends EventEmitter<{
     static defaultFillStyle: ConvertedFillStyle;
     /** The default stroke style to use when none is provided. */
     static defaultStrokeStyle: ConvertedStrokeStyle;
-    uid: number;
+    /** unique id for this graphics context */
+    readonly uid: number;
     dirty: boolean;
     batchMode: BatchMode;
     instructions: GraphicsInstructions[];

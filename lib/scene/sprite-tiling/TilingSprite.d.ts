@@ -1,11 +1,11 @@
 import { ObservablePoint } from '../../maths/point/ObservablePoint';
 import { Texture } from '../../rendering/renderers/shared/texture/Texture';
 import { Transform } from '../../utils/misc/Transform';
-import { Container } from '../container/Container';
+import { ViewContainer } from '../view/View';
 import type { PointData } from '../../maths/point/PointData';
 import type { Instruction } from '../../rendering/renderers/shared/instructions/Instruction';
 import type { View } from '../../rendering/renderers/shared/view/View';
-import type { Bounds, BoundsData } from '../container/bounds/Bounds';
+import type { Bounds } from '../container/bounds/Bounds';
 import type { ContainerOptions } from '../container/Container';
 import type { DestroyOptions } from '../container/destroyTypes';
 /**
@@ -83,7 +83,7 @@ export interface TilingSpriteOptions extends ContainerOptions {
  * @memberof scene
  * @extends scene.Container
  */
-export declare class TilingSprite extends Container implements View, Instruction {
+export declare class TilingSprite extends ViewContainer implements View, Instruction {
     /**
      * Creates a new tiling sprite.
      * @param source - The source to create the texture from.
@@ -93,17 +93,13 @@ export declare class TilingSprite extends Container implements View, Instruction
     static from(source: Texture | string, options?: TilingSpriteOptions): TilingSprite;
     /** default options for the TilingSprite */
     static defaultOptions: TilingSpriteOptions;
-    readonly renderPipeId = "tilingSprite";
-    readonly canBundle = true;
+    readonly renderPipeId: string;
     readonly batched = true;
     _anchor: ObservablePoint;
     _tileTransform: Transform;
     _texture: Texture;
     _applyAnchorToTexture: boolean;
     _didTilingSpriteUpdate: boolean;
-    _roundPixels: 0 | 1;
-    private _bounds;
-    private _boundsDirty;
     private _width;
     private _height;
     /**
@@ -151,16 +147,10 @@ export declare class TilingSprite extends Container implements View, Instruction
     /** The transform of the image that is being tiled. */
     get tileTransform(): Transform;
     /**
-     *  Whether or not to round the x/y position of the sprite.
-     * @type {boolean}
-     */
-    get roundPixels(): boolean;
-    set roundPixels(value: boolean);
-    /**
      * The local bounds of the sprite.
      * @type {rendering.Bounds}
      */
-    get bounds(): BoundsData;
+    get bounds(): Bounds;
     set texture(value: Texture);
     /** The texture that the sprite is using. */
     get texture(): Texture;
@@ -170,7 +160,7 @@ export declare class TilingSprite extends Container implements View, Instruction
     set height(value: number);
     /** The height of the tiling area. */
     get height(): number;
-    private _updateBounds;
+    protected _updateBounds(): void;
     /**
      * Adds the bounds of this object to the bounds object.
      * @param bounds - The output bounds object.

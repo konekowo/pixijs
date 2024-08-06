@@ -12,11 +12,13 @@ import { BlendModePipe } from '../blendModes/BlendModePipe';
 import { ExtractSystem } from '../extract/ExtractSystem';
 import { GenerateTextureSystem } from '../extract/GenerateTextureSystem';
 import { GlobalUniformSystem } from '../renderTarget/GlobalUniformSystem';
+import { SchedulerSystem } from '../SchedulerSystem';
 import { HelloSystem } from '../startup/HelloSystem';
+import { RenderableGCSystem } from '../texture/RenderableGCSystem';
 import { TextureGCSystem } from '../texture/TextureGCSystem';
 import { ViewSystem } from '../view/ViewSystem';
 import type { ExtractRendererOptions } from './utils/typeUtils';
-export declare const SharedSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook)[];
+export declare const SharedSystems: (typeof BackgroundSystem | typeof GenerateTextureSystem | typeof GlobalUniformSystem | typeof HelloSystem | typeof ViewSystem | typeof RenderGroupSystem | typeof TextureGCSystem | typeof ExtractSystem | typeof RendererInitHook | typeof RenderableGCSystem | typeof SchedulerSystem)[];
 export declare const SharedRenderPipes: (typeof BlendModePipe | typeof BatcherPipe | typeof SpritePipe | typeof RenderGroupPipe | typeof AlphaMaskPipe | typeof StencilMaskPipe | typeof ColorMaskPipe | typeof CustomRenderPipe)[];
 /**
  * Options for the shared systems of a renderer.

@@ -12,6 +12,7 @@ export declare class BitmapTextPipe implements RenderPipe<BitmapText> {
     };
     private _renderer;
     private _gpuBitmapText;
+    private readonly _destroyRenderableBound;
     constructor(renderer: Renderer);
     validateRenderable(bitmapText: BitmapText): boolean;
     addRenderable(bitmapText: BitmapText, instructionSet: InstructionSet): void;

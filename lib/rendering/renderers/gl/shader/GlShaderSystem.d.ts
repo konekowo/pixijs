@@ -1,6 +1,7 @@
 import { ExtensionType } from '../../../../extensions/Extensions';
 import type { BufferResource } from '../../shared/buffer/BufferResource';
 import type { Shader } from '../../shared/shader/Shader';
+import type { ShaderSystem } from '../../shared/shader/ShaderSystem';
 import type { UniformGroup } from '../../shared/shader/UniformGroup';
 import type { GlRenderingContext } from '../context/GlRenderingContext';
 import type { WebGLRenderer } from '../WebGLRenderer';
@@ -15,12 +16,13 @@ export type ShaderSyncFunction = (renderer: WebGLRenderer, shader: Shader, syncD
  * System plugin to the renderer to manage the shaders for WebGL.
  * @memberof rendering
  */
-export declare class GlShaderSystem {
+export declare class GlShaderSystem implements ShaderSystem {
     /** @ignore */
     static extension: {
         readonly type: readonly [ExtensionType.WebGLSystem];
         readonly name: "shader";
     };
+    maxTextures: number;
     /**
      * @internal
      * @private

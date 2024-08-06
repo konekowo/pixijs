@@ -56,6 +56,7 @@ export declare class PipelineSystem implements System {
     private _getModule;
     private _createModule;
     private _generateBufferKey;
+    private _generateAttributeLocationsKey;
     private _createVertexBufferLayouts;
     private _updatePipeHash;
     destroy(): void;
