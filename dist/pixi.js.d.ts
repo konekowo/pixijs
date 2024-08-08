@@ -19962,7 +19962,20 @@ export declare const boundsPool: Pool<BoundsPoolItem>;
  * @param ignore - An object of property names to ignore ({ propToIgnore: true }).
  */
 export declare function assignWithIgnore<T extends Record<string, any>>(target: T, options: T, ignore?: Record<string, boolean>): void;
+/**
+ * @param renderGroup
+ * @param renderPipes
+ * @deprecated since 8.3.0
+ */
+export declare function buildInstructions(renderGroup: RenderGroup, renderPipes: RenderPipes): void;
 export declare function buildInstructions(renderGroup: RenderGroup, renderer: Renderer): void;
+/**
+ * @param container
+ * @param instructionSet
+ * @param renderer
+ * @deprecated since 8.3.0
+ */
+export declare function collectAllRenderables(container: Container, instructionSet: InstructionSet, renderer: RenderPipes): void;
 export declare function collectAllRenderables(container: Container, instructionSet: InstructionSet, renderer: Renderer): void;
 /**
  * This function will crawl through the container essentially check if the children have changed.

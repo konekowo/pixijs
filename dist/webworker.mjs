@@ -1,6 +1,6 @@
 /*!
- * PixiJS - v8.2.6
- * Compiled Tue, 06 Aug 2024 13:38:41 UTC
+ * PixiJS - v8.3.1
+ * Compiled Thu, 08 Aug 2024 18:59:10 UTC
  *
  * PixiJS is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -35514,10 +35514,11 @@ const textureBitGl = {
 };
 
 "use strict";
-function buildInstructions(renderGroup, renderer) {
+function buildInstructions(renderGroup, rendererOrPipes) {
   const root = renderGroup.root;
   const instructionSet = renderGroup.instructionSet;
   instructionSet.reset();
+  const renderer = rendererOrPipes.renderPipes ? rendererOrPipes : rendererOrPipes.batch.renderer;
   const renderPipes = renderer.renderPipes;
   renderPipes.batch.buildStart(instructionSet);
   renderPipes.blendMode.buildStart();
@@ -35529,7 +35530,8 @@ function buildInstructions(renderGroup, renderer) {
   renderPipes.batch.buildEnd(instructionSet);
   renderPipes.blendMode.buildEnd(instructionSet);
 }
-function collectAllRenderables(container, instructionSet, renderer) {
+function collectAllRenderables(container, instructionSet, rendererOrPipes) {
+  const renderer = rendererOrPipes.renderPipes ? rendererOrPipes : rendererOrPipes.batch.renderer;
   if (container.globalDisplayStatus < 7 || !container.includeInBuild)
     return;
   if (container.sortableChildren) {
@@ -38278,6 +38280,7 @@ class RenderTargetSystem {
       }
       renderSurface.once("destroy", () => {
         renderTarget.destroy();
+        this._renderSurfaceToRenderTargetHash.delete(renderSurface);
         const gpuRenderTarget = this._gpuRenderTargetHash[renderTarget.uid];
         if (gpuRenderTarget) {
           this._gpuRenderTargetHash[renderTarget.uid] = null;
@@ -41494,7 +41497,7 @@ SchedulerSystem.extension = {
 
 "use strict";
 let saidHello = false;
-const VERSION = "8.2.6";
+const VERSION = "8.3.1";
 function sayHello(type) {
   if (saidHello) {
     return;
