@@ -66,4 +66,5 @@ export declare class RenderableGCSystem implements System<RenderableGCSystemOpti
     /** Runs the scheduled garbage collection */
     run(): void;
     destroy(): void;
+    private _removeRenderable;
 }

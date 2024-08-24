@@ -1,8 +1,10 @@
 import { Texture } from '../../rendering/renderers/shared/texture/Texture';
 import { ViewContainer } from '../view/View';
+import type { Size } from '../../maths/misc/Size';
 import type { View } from '../../rendering/renderers/shared/view/View';
 import type { Bounds, BoundsData } from '../container/bounds/Bounds';
 import type { ContainerOptions } from '../container/Container';
+import type { Optional } from '../container/container-mixins/measureMixin';
 import type { DestroyOptions } from '../container/destroyTypes';
 /**
  * Constructor options used for `NineSliceSprite` instances.
@@ -97,6 +99,21 @@ export declare class NineSliceSprite extends ViewContainer implements View {
     /** The height of the NineSliceSprite, setting this will actually modify the vertices and UV's of this plane. */
     get height(): number;
     set height(value: number);
+    /**
+     * Sets the size of the NiceSliceSprite to the specified width and height.
+     * setting this will actually modify the vertices and UV's of this plane
+     * This is faster than setting the width and height separately.
+     * @param value - This can be either a number or a [Size]{@link Size} object.
+     * @param height - The height to set. Defaults to the value of `width` if not provided.
+     */
+    setSize(value: number | Optional<Size, 'height'>, height?: number): void;
+    /**
+     * Retrieves the size of the NineSliceSprite as a [Size]{@link Size} object.
+     * This is faster than get the width and height separately.
+     * @param out - Optional object to store the size in.
+     * @returns - The size of the NineSliceSprite.
+     */
+    getSize(out?: Size): Size;
     /** The width of the left column (a) of the NineSliceSprite. */
     get leftWidth(): number;
     set leftWidth(value: number);

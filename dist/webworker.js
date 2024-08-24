@@ -1,6 +1,6 @@
 /*!
- * PixiJS - v8.3.2
- * Compiled Sat, 17 Aug 2024 01:54:49 UTC
+ * PixiJS - v8.3.4
+ * Compiled Sat, 24 Aug 2024 02:32:16 UTC
  *
  * PixiJS is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -12433,21 +12433,14 @@ Deprecated since v${version}`);
       setSize(value, height) {
         var _a;
         const size = this.getLocalBounds();
-        let convertedWidth;
-        let convertedHeight;
-        if (typeof value !== "object") {
-          convertedWidth = value;
-          convertedHeight = height != null ? height : value;
+        if (typeof value === "object") {
+          height = (_a = value.height) != null ? _a : value.width;
+          value = value.width;
         } else {
-          convertedWidth = value.width;
-          convertedHeight = (_a = value.height) != null ? _a : value.width;
+          height != null ? height : height = value;
         }
-        if (convertedWidth !== void 0) {
-          this._setWidth(convertedWidth, size.width);
-        }
-        if (convertedHeight !== void 0) {
-          this._setHeight(convertedHeight, size.height);
-        }
+        value !== void 0 && this._setWidth(value, size.width);
+        height !== void 0 && this._setHeight(height, size.height);
       }
       /** Called when the skew or the rotation changes. */
       _updateSkew() {
@@ -12708,6 +12701,10 @@ Deprecated since v${version}`);
         const { x, y } = point;
         return x >= bounds.minX && x <= bounds.maxX && y >= bounds.minY && y <= bounds.maxY;
       }
+      destroy(options) {
+        super.destroy(options);
+        this._bounds = null;
+      }
     }
 
     "use strict";
@@ -12944,9 +12941,7 @@ Deprecated since v${version}`);
        * @returns - The size of the Sprite.
        */
       getSize(out) {
-        if (!out) {
-          out = {};
-        }
+        out || (out = {});
         out.width = Math.abs(this.scale.x) * this._texture.orig.width;
         out.height = Math.abs(this.scale.y) * this._texture.orig.height;
         return out;
@@ -12959,21 +12954,14 @@ Deprecated since v${version}`);
        */
       setSize(value, height) {
         var _a;
-        let convertedWidth;
-        let convertedHeight;
-        if (typeof value !== "object") {
-          convertedWidth = value;
-          convertedHeight = height != null ? height : value;
+        if (typeof value === "object") {
+          height = (_a = value.height) != null ? _a : value.width;
+          value = value.width;
         } else {
-          convertedWidth = value.width;
-          convertedHeight = (_a = value.height) != null ? _a : value.width;
+          height != null ? height : height = value;
         }
-        if (convertedWidth !== void 0) {
-          this._setWidth(convertedWidth, this._texture.orig.width);
-        }
-        if (convertedHeight !== void 0) {
-          this._setHeight(convertedHeight, this._texture.orig.height);
-        }
+        value !== void 0 && this._setWidth(value, this._texture.orig.width);
+        height !== void 0 && this._setHeight(height, this._texture.orig.height);
       }
     }
 
@@ -27011,7 +26999,7 @@ ${parts.join("\n")}
           return;
         }
         const viewPort = renderer.renderTarget.rootViewPort;
-        bounds.scale(resolution).fitBounds(0, viewPort.width, 0, viewPort.height).scale(1 / resolution).pad(padding).ceil();
+        bounds.scale(resolution).fitBounds(0, viewPort.width, 0, viewPort.height).ceil().scale(1 / resolution).pad(padding | 0);
         if (!bounds.isPositive) {
           filterData.skip = true;
           return;
@@ -27503,8 +27491,12 @@ ${parts.join("\n")}
        * @param resolution - The resolution / device pixel ratio of the renderer.
        */
       resize(desiredScreenWidth, desiredScreenHeight, resolution) {
+        const previousResolution = this.view.resolution;
         this.view.resize(desiredScreenWidth, desiredScreenHeight, resolution);
         this.emit("resize", this.view.screen.width, this.view.screen.height, this.view.resolution);
+        if (resolution !== void 0 && resolution !== previousResolution) {
+          this.runners.resolutionChange.emit(resolution);
+        }
       }
       clear(options = {}) {
         var _a;
@@ -31674,11 +31666,11 @@ ${e}`);
     };
     let Filter = _Filter;
 
-    var blendTemplateFrag = "\nin vec2 vTextureCoord;\nin vec4 vColor;\n\nout vec4 finalColor;\n\nuniform float uBlend;\n\nuniform sampler2D uTexture;\nuniform sampler2D uBackTexture;\n\n{FUNCTIONS}\n\nvoid main()\n{ \n    vec4 back = texture(uBackTexture, vTextureCoord);\n    vec4 front = texture(uTexture, vTextureCoord);\n    float blendedAlpha = front.a + back.a * (1.0 - front.a);\n    \n    {MAIN}\n}\n";
+    var blendTemplateFrag = "\r\nin vec2 vTextureCoord;\r\nin vec4 vColor;\r\n\r\nout vec4 finalColor;\r\n\r\nuniform float uBlend;\r\n\r\nuniform sampler2D uTexture;\r\nuniform sampler2D uBackTexture;\r\n\r\n{FUNCTIONS}\r\n\r\nvoid main()\r\n{ \r\n    vec4 back = texture(uBackTexture, vTextureCoord);\r\n    vec4 front = texture(uTexture, vTextureCoord);\r\n    float blendedAlpha = front.a + back.a * (1.0 - front.a);\r\n    \r\n    {MAIN}\r\n}\r\n";
 
-    var blendTemplateVert = "in vec2 aPosition;\nout vec2 vTextureCoord;\nout vec2 backgroundUv;\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\n\nvec4 filterVertexPosition( void )\n{\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n    \n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord( void )\n{\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvoid main(void)\n{\n    gl_Position = filterVertexPosition();\n    vTextureCoord = filterTextureCoord();\n}\n";
+    var blendTemplateVert = "in vec2 aPosition;\r\nout vec2 vTextureCoord;\r\nout vec2 backgroundUv;\r\n\r\nuniform vec4 uInputSize;\r\nuniform vec4 uOutputFrame;\r\nuniform vec4 uOutputTexture;\r\n\r\nvec4 filterVertexPosition( void )\r\n{\r\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\r\n    \r\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nvec2 filterTextureCoord( void )\r\n{\r\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\r\n}\r\n\r\nvoid main(void)\r\n{\r\n    gl_Position = filterVertexPosition();\r\n    vTextureCoord = filterTextureCoord();\r\n}\r\n";
 
-    var blendTemplate = "\nstruct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,\n};\n\nstruct BlendUniforms {\n  uBlend:f32,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n@group(0) @binding(3) var uBackTexture: texture_2d<f32>;\n\n@group(1) @binding(0) var<uniform> blendUniforms : BlendUniforms;\n\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>\n  };\n\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \n}\n  \n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n  return VSOutput(\n   filterVertexPosition(aPosition),\n   filterTextureCoord(aPosition)\n  );\n}\n\n{FUNCTIONS}\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>\n) -> @location(0) vec4<f32> {\n\n\n   var back =  textureSample(uBackTexture, uSampler, uv);\n   var front = textureSample(uTexture, uSampler, uv);\n   var blendedAlpha = front.a + back.a * (1.0 - front.a);\n   \n   var out = vec4<f32>(0.0,0.0,0.0,0.0);\n\n   {MAIN}\n\n   return out;\n}";
+    var blendTemplate = "\r\nstruct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,\r\n};\r\n\r\nstruct BlendUniforms {\r\n  uBlend:f32,\r\n};\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n@group(0) @binding(3) var uBackTexture: texture_2d<f32>;\r\n\r\n@group(1) @binding(0) var<uniform> blendUniforms : BlendUniforms;\r\n\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv : vec2<f32>\r\n  };\r\n\r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \r\n}\r\n  \r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n   filterTextureCoord(aPosition)\r\n  );\r\n}\r\n\r\n{FUNCTIONS}\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @location(0) uv: vec2<f32>\r\n) -> @location(0) vec4<f32> {\r\n\r\n\r\n   var back =  textureSample(uBackTexture, uSampler, uv);\r\n   var front = textureSample(uTexture, uSampler, uv);\r\n   var blendedAlpha = front.a + back.a * (1.0 - front.a);\r\n   \r\n   var out = vec4<f32>(0.0,0.0,0.0,0.0);\r\n\r\n   {MAIN}\r\n\r\n   return out;\r\n}";
 
     "use strict";
     var __defProp$x = Object.defineProperty;
@@ -31921,11 +31913,11 @@ ${e}`);
 	}
 	`;
 
-    var vertex$2 = "in vec2 aPosition;\nout vec2 vTextureCoord;\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\n\nvec4 filterVertexPosition( void )\n{\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n    \n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord( void )\n{\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvoid main(void)\n{\n    gl_Position = filterVertexPosition();\n    vTextureCoord = filterTextureCoord();\n}\n";
+    var vertex$2 = "in vec2 aPosition;\r\nout vec2 vTextureCoord;\r\n\r\nuniform vec4 uInputSize;\r\nuniform vec4 uOutputFrame;\r\nuniform vec4 uOutputTexture;\r\n\r\nvec4 filterVertexPosition( void )\r\n{\r\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\r\n    \r\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nvec2 filterTextureCoord( void )\r\n{\r\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\r\n}\r\n\r\nvoid main(void)\r\n{\r\n    gl_Position = filterVertexPosition();\r\n    vTextureCoord = filterTextureCoord();\r\n}\r\n";
 
-    var fragment$4 = "\nin vec2 vTextureCoord;\n\nout vec4 finalColor;\n\nuniform float uAlpha;\nuniform sampler2D uTexture;\n\nvoid main()\n{\n    finalColor =  texture(uTexture, vTextureCoord) * uAlpha;\n}\n";
+    var fragment$4 = "\r\nin vec2 vTextureCoord;\r\n\r\nout vec4 finalColor;\r\n\r\nuniform float uAlpha;\r\nuniform sampler2D uTexture;\r\n\r\nvoid main()\r\n{\r\n    finalColor =  texture(uTexture, vTextureCoord) * uAlpha;\r\n}\r\n";
 
-    var source$5 = "struct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,\n};\n\nstruct AlphaUniforms {\n  uAlpha:f32,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n\n@group(1) @binding(0) var<uniform> alphaUniforms : AlphaUniforms;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>\n  };\n\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \n}\n\nfn getSize() -> vec2<f32>\n{\n  return gfu.uGlobalFrame.zw;\n}\n  \n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n  return VSOutput(\n   filterVertexPosition(aPosition),\n   filterTextureCoord(aPosition)\n  );\n}\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>,\n  @builtin(position) position: vec4<f32>\n) -> @location(0) vec4<f32> {\n \n    var sample = textureSample(uTexture, uSampler, uv);\n    \n    return sample * alphaUniforms.uAlpha;\n}";
+    var source$5 = "struct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,\r\n};\r\n\r\nstruct AlphaUniforms {\r\n  uAlpha:f32,\r\n};\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n\r\n@group(1) @binding(0) var<uniform> alphaUniforms : AlphaUniforms;\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv : vec2<f32>\r\n  };\r\n\r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \r\n}\r\n\r\nfn getSize() -> vec2<f32>\r\n{\r\n  return gfu.uGlobalFrame.zw;\r\n}\r\n  \r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n   filterTextureCoord(aPosition)\r\n  );\r\n}\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @location(0) uv: vec2<f32>,\r\n  @builtin(position) position: vec4<f32>\r\n) -> @location(0) vec4<f32> {\r\n \r\n    var sample = textureSample(uTexture, uSampler, uv);\r\n    \r\n    return sample * alphaUniforms.uAlpha;\r\n}";
 
     "use strict";
     var __defProp$w = Object.defineProperty;
@@ -32119,7 +32111,7 @@ ${e}`);
       });
     }
 
-    var source$4 = "\n\nstruct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,\n};\n\nstruct BlurUniforms {\n  uStrength:f32,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n\n@group(1) @binding(0) var<uniform> blurUniforms : BlurUniforms;\n\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    %blur-struct%\n  };\n\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \n}\n\nfn getSize() -> vec2<f32>\n{\n  return gfu.uGlobalFrame.zw;\n}\n\n\n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n\n  let filteredCord = filterTextureCoord(aPosition);\n\n  let strength = gfu.uInputSize.w * blurUniforms.uStrength;\n\n  return VSOutput(\n   filterVertexPosition(aPosition),\n    %blur-vertex-out%\n  );\n}\n\n@fragment\nfn mainFragment(\n  @builtin(position) position: vec4<f32>,\n  %blur-fragment-in%\n) -> @location(0) vec4<f32> {\n\n    var   finalColor = vec4(0.0);\n\n    %blur-sampling%\n\n    return finalColor;\n}";
+    var source$4 = "\r\n\r\nstruct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,\r\n};\r\n\r\nstruct BlurUniforms {\r\n  uStrength:f32,\r\n};\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n\r\n@group(1) @binding(0) var<uniform> blurUniforms : BlurUniforms;\r\n\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    %blur-struct%\r\n  };\r\n\r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \r\n}\r\n\r\nfn getSize() -> vec2<f32>\r\n{\r\n  return gfu.uGlobalFrame.zw;\r\n}\r\n\r\n\r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n\r\n  let filteredCord = filterTextureCoord(aPosition);\r\n\r\n  let pixelStrength = gfu.uInputSize.%dimension% * blurUniforms.uStrength;\r\n\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n    %blur-vertex-out%\r\n  );\r\n}\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @builtin(position) position: vec4<f32>,\r\n  %blur-fragment-in%\r\n) -> @location(0) vec4<f32> {\r\n\r\n    var   finalColor = vec4(0.0);\r\n\r\n    %blur-sampling%\r\n\r\n    return finalColor;\r\n}";
 
     "use strict";
     function generateBlurProgram(horizontal, kernelSize) {
@@ -32131,9 +32123,9 @@ ${e}`);
       for (let i = 0; i < kernelSize; i++) {
         blurStructSource[i] = `@location(${i}) offset${i}: vec2<f32>,`;
         if (horizontal) {
-          blurOutSource[i] = `filteredCord + vec2(${i - halfLength + 1} * strength, 0.0),`;
+          blurOutSource[i] = `filteredCord + vec2(${i - halfLength + 1} * pixelStrength, 0.0),`;
         } else {
-          blurOutSource[i] = `filteredCord + vec2(0.0, ${i - halfLength + 1} * strength),`;
+          blurOutSource[i] = `filteredCord + vec2(0.0, ${i - halfLength + 1} * pixelStrength),`;
         }
         const kernelIndex = i < halfLength ? i : kernelSize - i - 1;
         const kernelValue = kernel[kernelIndex].toString();
@@ -32142,7 +32134,7 @@ ${e}`);
       const blurStruct = blurStructSource.join("\n");
       const blurOut = blurOutSource.join("\n");
       const blurSampling = blurSamplingSource.join("\n");
-      const finalSource = source$4.replace("%blur-struct%", blurStruct).replace("%blur-vertex-out%", blurOut).replace("%blur-fragment-in%", blurStruct).replace("%blur-sampling%", blurSampling);
+      const finalSource = source$4.replace("%blur-struct%", blurStruct).replace("%blur-vertex-out%", blurOut).replace("%blur-fragment-in%", blurStruct).replace("%blur-sampling%", blurSampling).replace("%dimension%", horizontal ? "z" : "w");
       return GpuProgram.from({
         vertex: {
           source: finalSource,
@@ -32215,8 +32207,9 @@ ${e}`);
           let flip = input;
           let flop = tempTexture;
           this._state.blend = false;
+          const shouldClear = filterManager.renderer.type === RendererType.WEBGPU;
           for (let i = 0; i < this.passes - 1; i++) {
-            filterManager.applyFilter(this, flip, flop, filterManager.renderer.type === RendererType.WEBGPU);
+            filterManager.applyFilter(this, flip, flop, i === 0 ? true : shouldClear);
             const temp = flop;
             flop = flip;
             flip = temp;
@@ -32463,9 +32456,9 @@ ${e}`);
       kernelSize: 5
     };
 
-    var fragment$3 = "\nin vec2 vTextureCoord;\nin vec4 vColor;\n\nout vec4 finalColor;\n\nuniform float uColorMatrix[20];\nuniform float uAlpha;\n\nuniform sampler2D uTexture;\n\nfloat rand(vec2 co)\n{\n    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\n}\n\nvoid main()\n{\n    vec4 color = texture(uTexture, vTextureCoord);\n    float randomValue = rand(gl_FragCoord.xy * 0.2);\n    float diff = (randomValue - 0.5) *  0.5;\n\n    if (uAlpha == 0.0) {\n        finalColor = color;\n        return;\n    }\n\n    if (color.a > 0.0) {\n        color.rgb /= color.a;\n    }\n\n    vec4 result;\n\n    result.r = (uColorMatrix[0] * color.r);\n        result.r += (uColorMatrix[1] * color.g);\n        result.r += (uColorMatrix[2] * color.b);\n        result.r += (uColorMatrix[3] * color.a);\n        result.r += uColorMatrix[4];\n\n    result.g = (uColorMatrix[5] * color.r);\n        result.g += (uColorMatrix[6] * color.g);\n        result.g += (uColorMatrix[7] * color.b);\n        result.g += (uColorMatrix[8] * color.a);\n        result.g += uColorMatrix[9];\n\n    result.b = (uColorMatrix[10] * color.r);\n       result.b += (uColorMatrix[11] * color.g);\n       result.b += (uColorMatrix[12] * color.b);\n       result.b += (uColorMatrix[13] * color.a);\n       result.b += uColorMatrix[14];\n\n    result.a = (uColorMatrix[15] * color.r);\n       result.a += (uColorMatrix[16] * color.g);\n       result.a += (uColorMatrix[17] * color.b);\n       result.a += (uColorMatrix[18] * color.a);\n       result.a += uColorMatrix[19];\n\n    vec3 rgb = mix(color.rgb, result.rgb, uAlpha);\n\n    // Premultiply alpha again.\n    rgb *= result.a;\n\n    finalColor = vec4(rgb, result.a);\n}\n";
+    var fragment$3 = "\r\nin vec2 vTextureCoord;\r\nin vec4 vColor;\r\n\r\nout vec4 finalColor;\r\n\r\nuniform float uColorMatrix[20];\r\nuniform float uAlpha;\r\n\r\nuniform sampler2D uTexture;\r\n\r\nfloat rand(vec2 co)\r\n{\r\n    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\r\n}\r\n\r\nvoid main()\r\n{\r\n    vec4 color = texture(uTexture, vTextureCoord);\r\n    float randomValue = rand(gl_FragCoord.xy * 0.2);\r\n    float diff = (randomValue - 0.5) *  0.5;\r\n\r\n    if (uAlpha == 0.0) {\r\n        finalColor = color;\r\n        return;\r\n    }\r\n\r\n    if (color.a > 0.0) {\r\n        color.rgb /= color.a;\r\n    }\r\n\r\n    vec4 result;\r\n\r\n    result.r = (uColorMatrix[0] * color.r);\r\n        result.r += (uColorMatrix[1] * color.g);\r\n        result.r += (uColorMatrix[2] * color.b);\r\n        result.r += (uColorMatrix[3] * color.a);\r\n        result.r += uColorMatrix[4];\r\n\r\n    result.g = (uColorMatrix[5] * color.r);\r\n        result.g += (uColorMatrix[6] * color.g);\r\n        result.g += (uColorMatrix[7] * color.b);\r\n        result.g += (uColorMatrix[8] * color.a);\r\n        result.g += uColorMatrix[9];\r\n\r\n    result.b = (uColorMatrix[10] * color.r);\r\n       result.b += (uColorMatrix[11] * color.g);\r\n       result.b += (uColorMatrix[12] * color.b);\r\n       result.b += (uColorMatrix[13] * color.a);\r\n       result.b += uColorMatrix[14];\r\n\r\n    result.a = (uColorMatrix[15] * color.r);\r\n       result.a += (uColorMatrix[16] * color.g);\r\n       result.a += (uColorMatrix[17] * color.b);\r\n       result.a += (uColorMatrix[18] * color.a);\r\n       result.a += uColorMatrix[19];\r\n\r\n    vec3 rgb = mix(color.rgb, result.rgb, uAlpha);\r\n\r\n    // Premultiply alpha again.\r\n    rgb *= result.a;\r\n\r\n    finalColor = vec4(rgb, result.a);\r\n}\r\n";
 
-    var source$3 = "struct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,\n};\n\nstruct ColorMatrixUniforms {\n  uColorMatrix:array<vec4<f32>, 5>,\n  uAlpha:f32,\n};\n\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n@group(1) @binding(0) var<uniform> colorMatrixUniforms : ColorMatrixUniforms;\n\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>,\n  };\n  \nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n  return VSOutput(\n   filterVertexPosition(aPosition),\n   filterTextureCoord(aPosition),\n  );\n}\n\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>,\n) -> @location(0) vec4<f32> {\n\n\n  var c = textureSample(uTexture, uSampler, uv);\n  \n  if (colorMatrixUniforms.uAlpha == 0.0) {\n    return c;\n  }\n\n \n    // Un-premultiply alpha before applying the color matrix. See issue #3539.\n    if (c.a > 0.0) {\n      c.r /= c.a;\n      c.g /= c.a;\n      c.b /= c.a;\n    }\n\n    var cm = colorMatrixUniforms.uColorMatrix;\n\n\n    var result = vec4<f32>(0.);\n\n    result.r = (cm[0][0] * c.r);\n    result.r += (cm[0][1] * c.g);\n    result.r += (cm[0][2] * c.b);\n    result.r += (cm[0][3] * c.a);\n    result.r += cm[1][0];\n\n    result.g = (cm[1][1] * c.r);\n    result.g += (cm[1][2] * c.g);\n    result.g += (cm[1][3] * c.b);\n    result.g += (cm[2][0] * c.a);\n    result.g += cm[2][1];\n\n    result.b = (cm[2][2] * c.r);\n    result.b += (cm[2][3] * c.g);\n    result.b += (cm[3][0] * c.b);\n    result.b += (cm[3][1] * c.a);\n    result.b += cm[3][2];\n\n    result.a = (cm[3][3] * c.r);\n    result.a += (cm[4][0] * c.g);\n    result.a += (cm[4][1] * c.b);\n    result.a += (cm[4][2] * c.a);\n    result.a += cm[4][3];\n\n    var rgb = mix(c.rgb, result.rgb, colorMatrixUniforms.uAlpha);\n\n    rgb.r *= result.a;\n    rgb.g *= result.a;\n    rgb.b *= result.a;\n\n    return vec4(rgb, result.a);\n}";
+    var source$3 = "struct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,\r\n};\r\n\r\nstruct ColorMatrixUniforms {\r\n  uColorMatrix:array<vec4<f32>, 5>,\r\n  uAlpha:f32,\r\n};\r\n\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n@group(1) @binding(0) var<uniform> colorMatrixUniforms : ColorMatrixUniforms;\r\n\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv : vec2<f32>,\r\n  };\r\n  \r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n   filterTextureCoord(aPosition),\r\n  );\r\n}\r\n\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @location(0) uv: vec2<f32>,\r\n) -> @location(0) vec4<f32> {\r\n\r\n\r\n  var c = textureSample(uTexture, uSampler, uv);\r\n  \r\n  if (colorMatrixUniforms.uAlpha == 0.0) {\r\n    return c;\r\n  }\r\n\r\n \r\n    // Un-premultiply alpha before applying the color matrix. See issue #3539.\r\n    if (c.a > 0.0) {\r\n      c.r /= c.a;\r\n      c.g /= c.a;\r\n      c.b /= c.a;\r\n    }\r\n\r\n    var cm = colorMatrixUniforms.uColorMatrix;\r\n\r\n\r\n    var result = vec4<f32>(0.);\r\n\r\n    result.r = (cm[0][0] * c.r);\r\n    result.r += (cm[0][1] * c.g);\r\n    result.r += (cm[0][2] * c.b);\r\n    result.r += (cm[0][3] * c.a);\r\n    result.r += cm[1][0];\r\n\r\n    result.g = (cm[1][1] * c.r);\r\n    result.g += (cm[1][2] * c.g);\r\n    result.g += (cm[1][3] * c.b);\r\n    result.g += (cm[2][0] * c.a);\r\n    result.g += cm[2][1];\r\n\r\n    result.b = (cm[2][2] * c.r);\r\n    result.b += (cm[2][3] * c.g);\r\n    result.b += (cm[3][0] * c.b);\r\n    result.b += (cm[3][1] * c.a);\r\n    result.b += cm[3][2];\r\n\r\n    result.a = (cm[3][3] * c.r);\r\n    result.a += (cm[4][0] * c.g);\r\n    result.a += (cm[4][1] * c.b);\r\n    result.a += (cm[4][2] * c.a);\r\n    result.a += cm[4][3];\r\n\r\n    var rgb = mix(c.rgb, result.rgb, colorMatrixUniforms.uAlpha);\r\n\r\n    rgb.r *= result.a;\r\n    rgb.g *= result.a;\r\n    rgb.b *= result.a;\r\n\r\n    return vec4(rgb, result.a);\r\n}";
 
     "use strict";
     var __defProp$t = Object.defineProperty;
@@ -33292,11 +33285,11 @@ ${e}`);
       }
     }
 
-    var fragment$2 = "\nin vec2 vTextureCoord;\nin vec2 vFilterUv;\n\nout vec4 finalColor;\n\nuniform sampler2D uTexture;\nuniform sampler2D uMapTexture;\n\nuniform vec4 uInputClamp;\nuniform highp vec4 uInputSize;\nuniform mat2 uRotation;\nuniform vec2 uScale;\n\nvoid main()\n{\n    vec4 map = texture(uMapTexture, vFilterUv);\n    \n    vec2 offset = uInputSize.zw * (uRotation * (map.xy - 0.5)) * uScale; \n\n    finalColor = texture(uTexture, clamp(vTextureCoord + offset, uInputClamp.xy, uInputClamp.zw));\n}\n";
+    var fragment$2 = "\r\nin vec2 vTextureCoord;\r\nin vec2 vFilterUv;\r\n\r\nout vec4 finalColor;\r\n\r\nuniform sampler2D uTexture;\r\nuniform sampler2D uMapTexture;\r\n\r\nuniform vec4 uInputClamp;\r\nuniform highp vec4 uInputSize;\r\nuniform mat2 uRotation;\r\nuniform vec2 uScale;\r\n\r\nvoid main()\r\n{\r\n    vec4 map = texture(uMapTexture, vFilterUv);\r\n    \r\n    vec2 offset = uInputSize.zw * (uRotation * (map.xy - 0.5)) * uScale; \r\n\r\n    finalColor = texture(uTexture, clamp(vTextureCoord + offset, uInputClamp.xy, uInputClamp.zw));\r\n}\r\n";
 
-    var vertex$1 = "in vec2 aPosition;\nout vec2 vTextureCoord;\nout vec2 vFilterUv;\n\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\n\nuniform mat3 uFilterMatrix;\n\nvec4 filterVertexPosition( void )\n{\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n    \n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord( void )\n{\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvec2 getFilterCoord( void )\n{\n  return ( uFilterMatrix * vec3( filterTextureCoord(), 1.0)  ).xy;\n}\n\n\nvoid main(void)\n{\n    gl_Position = filterVertexPosition();\n    vTextureCoord = filterTextureCoord();\n    vFilterUv = getFilterCoord();\n}\n";
+    var vertex$1 = "in vec2 aPosition;\r\nout vec2 vTextureCoord;\r\nout vec2 vFilterUv;\r\n\r\n\r\nuniform vec4 uInputSize;\r\nuniform vec4 uOutputFrame;\r\nuniform vec4 uOutputTexture;\r\n\r\nuniform mat3 uFilterMatrix;\r\n\r\nvec4 filterVertexPosition( void )\r\n{\r\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\r\n    \r\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nvec2 filterTextureCoord( void )\r\n{\r\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\r\n}\r\n\r\nvec2 getFilterCoord( void )\r\n{\r\n  return ( uFilterMatrix * vec3( filterTextureCoord(), 1.0)  ).xy;\r\n}\r\n\r\n\r\nvoid main(void)\r\n{\r\n    gl_Position = filterVertexPosition();\r\n    vTextureCoord = filterTextureCoord();\r\n    vFilterUv = getFilterCoord();\r\n}\r\n";
 
-    var source$2 = "\nstruct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,\n};\n\nstruct DisplacementUniforms {\n  uFilterMatrix:mat3x3<f32>,\n  uScale:vec2<f32>,\n  uRotation:mat2x2<f32>\n};\n\n\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n\n@group(1) @binding(0) var<uniform> filterUniforms : DisplacementUniforms;\n@group(1) @binding(1) var uMapTexture: texture_2d<f32>;\n@group(1) @binding(2) var uMapSampler : sampler;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>,\n    @location(1) filterUv : vec2<f32>,\n  };\n\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \n}\n\nfn getFilterCoord(aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return ( filterUniforms.uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\n}\n\nfn getSize() -> vec2<f32>\n{\n\n  \n  return gfu.uGlobalFrame.zw;\n}\n  \n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n  return VSOutput(\n   filterVertexPosition(aPosition),\n   filterTextureCoord(aPosition),\n   getFilterCoord(aPosition)\n  );\n}\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>,\n  @location(1) filterUv: vec2<f32>,\n  @builtin(position) position: vec4<f32>\n) -> @location(0) vec4<f32> {\n\n    var map = textureSample(uMapTexture, uMapSampler, filterUv);\n\n    var offset =  gfu.uInputSize.zw * (filterUniforms.uRotation * (map.xy - 0.5)) * filterUniforms.uScale; \n   \n    return textureSample(uTexture, uSampler, clamp(uv + offset, gfu.uInputClamp.xy, gfu.uInputClamp.zw));\n}";
+    var source$2 = "\r\nstruct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,\r\n};\r\n\r\nstruct DisplacementUniforms {\r\n  uFilterMatrix:mat3x3<f32>,\r\n  uScale:vec2<f32>,\r\n  uRotation:mat2x2<f32>\r\n};\r\n\r\n\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n\r\n@group(1) @binding(0) var<uniform> filterUniforms : DisplacementUniforms;\r\n@group(1) @binding(1) var uMapTexture: texture_2d<f32>;\r\n@group(1) @binding(2) var uMapSampler : sampler;\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv : vec2<f32>,\r\n    @location(1) filterUv : vec2<f32>,\r\n  };\r\n\r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \r\n}\r\n\r\nfn getFilterCoord(aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return ( filterUniforms.uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\r\n}\r\n\r\nfn getSize() -> vec2<f32>\r\n{\r\n\r\n  \r\n  return gfu.uGlobalFrame.zw;\r\n}\r\n  \r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n   filterTextureCoord(aPosition),\r\n   getFilterCoord(aPosition)\r\n  );\r\n}\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @location(0) uv: vec2<f32>,\r\n  @location(1) filterUv: vec2<f32>,\r\n  @builtin(position) position: vec4<f32>\r\n) -> @location(0) vec4<f32> {\r\n\r\n    var map = textureSample(uMapTexture, uMapSampler, filterUv);\r\n\r\n    var offset =  gfu.uInputSize.zw * (filterUniforms.uRotation * (map.xy - 0.5)) * filterUniforms.uScale; \r\n   \r\n    return textureSample(uTexture, uSampler, clamp(uv + offset, gfu.uInputClamp.xy, gfu.uInputClamp.zw));\r\n}";
 
     "use strict";
     var __defProp$s = Object.defineProperty;
@@ -33408,9 +33401,9 @@ ${e}`);
       }
     }
 
-    var fragment$1 = "\nin vec2 vTextureCoord;\nin vec4 vColor;\n\nout vec4 finalColor;\n\nuniform float uNoise;\nuniform float uSeed;\nuniform sampler2D uTexture;\n\nfloat rand(vec2 co)\n{\n    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\n}\n\nvoid main()\n{\n    vec4 color = texture(uTexture, vTextureCoord);\n    float randomValue = rand(gl_FragCoord.xy * uSeed);\n    float diff = (randomValue - 0.5) *  uNoise;\n\n    // Un-premultiply alpha before applying the color matrix. See issue #3539.\n    if (color.a > 0.0) {\n        color.rgb /= color.a;\n    }\n\n    color.r += diff;\n    color.g += diff;\n    color.b += diff;\n\n    // Premultiply alpha again.\n    color.rgb *= color.a;\n\n    finalColor = color;\n}\n";
+    var fragment$1 = "\r\nin vec2 vTextureCoord;\r\nin vec4 vColor;\r\n\r\nout vec4 finalColor;\r\n\r\nuniform float uNoise;\r\nuniform float uSeed;\r\nuniform sampler2D uTexture;\r\n\r\nfloat rand(vec2 co)\r\n{\r\n    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\r\n}\r\n\r\nvoid main()\r\n{\r\n    vec4 color = texture(uTexture, vTextureCoord);\r\n    float randomValue = rand(gl_FragCoord.xy * uSeed);\r\n    float diff = (randomValue - 0.5) *  uNoise;\r\n\r\n    // Un-premultiply alpha before applying the color matrix. See issue #3539.\r\n    if (color.a > 0.0) {\r\n        color.rgb /= color.a;\r\n    }\r\n\r\n    color.r += diff;\r\n    color.g += diff;\r\n    color.b += diff;\r\n\r\n    // Premultiply alpha again.\r\n    color.rgb *= color.a;\r\n\r\n    finalColor = color;\r\n}\r\n";
 
-    var source$1 = "\n\nstruct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,\n};\n\nstruct NoiseUniforms {\n  uNoise:f32,\n  uSeed:f32,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n\n@group(1) @binding(0) var<uniform> noiseUniforms : NoiseUniforms;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>\n  };\n\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \n}\n\nfn getSize() -> vec2<f32>\n{\n  return gfu.uGlobalFrame.zw;\n}\n  \n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n  return VSOutput(\n   filterVertexPosition(aPosition),\n   filterTextureCoord(aPosition)\n  );\n}\n\nfn rand(co:vec2<f32>) -> f32\n{\n  return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\n}\n\n\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>,\n  @builtin(position) position: vec4<f32>\n) -> @location(0) vec4<f32> {\n\n    var pixelPosition =  globalTextureCoord(position.xy);// / (getSize());//-  gfu.uOutputFrame.xy);\n  \n    \n    var sample = textureSample(uTexture, uSampler, uv);\n    var randomValue =  rand(pixelPosition.xy * noiseUniforms.uSeed);\n    var diff = (randomValue - 0.5) * noiseUniforms.uNoise;\n  \n    // Un-premultiply alpha before applying the color matrix. See issue #3539.\n    if (sample.a > 0.0) {\n      sample.r /= sample.a;\n      sample.g /= sample.a;\n      sample.b /= sample.a;\n    }\n\n    sample.r += diff;\n    sample.g += diff;\n    sample.b += diff;\n\n    // Premultiply alpha again.\n    sample.r *= sample.a;\n    sample.g *= sample.a;\n    sample.b *= sample.a;\n    \n    return sample;\n}";
+    var source$1 = "\r\n\r\nstruct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,\r\n};\r\n\r\nstruct NoiseUniforms {\r\n  uNoise:f32,\r\n  uSeed:f32,\r\n};\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n\r\n@group(1) @binding(0) var<uniform> noiseUniforms : NoiseUniforms;\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv : vec2<f32>\r\n  };\r\n\r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \r\n}\r\n\r\nfn getSize() -> vec2<f32>\r\n{\r\n  return gfu.uGlobalFrame.zw;\r\n}\r\n  \r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n   filterTextureCoord(aPosition)\r\n  );\r\n}\r\n\r\nfn rand(co:vec2<f32>) -> f32\r\n{\r\n  return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\r\n}\r\n\r\n\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @location(0) uv: vec2<f32>,\r\n  @builtin(position) position: vec4<f32>\r\n) -> @location(0) vec4<f32> {\r\n\r\n    var pixelPosition =  globalTextureCoord(position.xy);// / (getSize());//-  gfu.uOutputFrame.xy);\r\n  \r\n    \r\n    var sample = textureSample(uTexture, uSampler, uv);\r\n    var randomValue =  rand(pixelPosition.xy * noiseUniforms.uSeed);\r\n    var diff = (randomValue - 0.5) * noiseUniforms.uNoise;\r\n  \r\n    // Un-premultiply alpha before applying the color matrix. See issue #3539.\r\n    if (sample.a > 0.0) {\r\n      sample.r /= sample.a;\r\n      sample.g /= sample.a;\r\n      sample.b /= sample.a;\r\n    }\r\n\r\n    sample.r += diff;\r\n    sample.g += diff;\r\n    sample.b += diff;\r\n\r\n    // Premultiply alpha again.\r\n    sample.r *= sample.a;\r\n    sample.g *= sample.a;\r\n    sample.b *= sample.a;\r\n    \r\n    return sample;\r\n}";
 
     "use strict";
     var __defProp$r = Object.defineProperty;
@@ -33502,11 +33495,11 @@ ${e}`);
     };
     let NoiseFilter = _NoiseFilter;
 
-    var fragment = "in vec2 vMaskCoord;\nin vec2 vTextureCoord;\n\nuniform sampler2D uTexture;\nuniform sampler2D uMaskTexture;\n\nuniform float uAlpha;\nuniform vec4 uMaskClamp;\n\nout vec4 finalColor;\n\nvoid main(void)\n{\n    float clip = step(3.5,\n        step(uMaskClamp.x, vMaskCoord.x) +\n        step(uMaskClamp.y, vMaskCoord.y) +\n        step(vMaskCoord.x, uMaskClamp.z) +\n        step(vMaskCoord.y, uMaskClamp.w));\n\n    // TODO look into why this is needed\n    float npmAlpha = uAlpha; \n    vec4 original = texture(uTexture, vTextureCoord);\n    vec4 masky = texture(uMaskTexture, vMaskCoord);\n    float alphaMul = 1.0 - npmAlpha * (1.0 - masky.a);\n\n    original *= (alphaMul * masky.r * uAlpha * clip);\n\n    finalColor = original;\n}\n";
+    var fragment = "in vec2 vMaskCoord;\r\nin vec2 vTextureCoord;\r\n\r\nuniform sampler2D uTexture;\r\nuniform sampler2D uMaskTexture;\r\n\r\nuniform float uAlpha;\r\nuniform vec4 uMaskClamp;\r\n\r\nout vec4 finalColor;\r\n\r\nvoid main(void)\r\n{\r\n    float clip = step(3.5,\r\n        step(uMaskClamp.x, vMaskCoord.x) +\r\n        step(uMaskClamp.y, vMaskCoord.y) +\r\n        step(vMaskCoord.x, uMaskClamp.z) +\r\n        step(vMaskCoord.y, uMaskClamp.w));\r\n\r\n    // TODO look into why this is needed\r\n    float npmAlpha = uAlpha; \r\n    vec4 original = texture(uTexture, vTextureCoord);\r\n    vec4 masky = texture(uMaskTexture, vMaskCoord);\r\n    float alphaMul = 1.0 - npmAlpha * (1.0 - masky.a);\r\n\r\n    original *= (alphaMul * masky.r * uAlpha * clip);\r\n\r\n    finalColor = original;\r\n}\r\n";
 
-    var vertex = "in vec2 aPosition;\n\nout vec2 vTextureCoord;\nout vec2 vMaskCoord;\n\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\nuniform mat3 uFilterMatrix;\n\nvec4 filterVertexPosition(  vec2 aPosition )\n{\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n       \n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord(  vec2 aPosition )\n{\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvec2 getFilterCoord( vec2 aPosition )\n{\n    return  ( uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\n}   \n\nvoid main(void)\n{\n    gl_Position = filterVertexPosition(aPosition);\n    vTextureCoord = filterTextureCoord(aPosition);\n    vMaskCoord = getFilterCoord(aPosition);\n}\n";
+    var vertex = "in vec2 aPosition;\r\n\r\nout vec2 vTextureCoord;\r\nout vec2 vMaskCoord;\r\n\r\n\r\nuniform vec4 uInputSize;\r\nuniform vec4 uOutputFrame;\r\nuniform vec4 uOutputTexture;\r\nuniform mat3 uFilterMatrix;\r\n\r\nvec4 filterVertexPosition(  vec2 aPosition )\r\n{\r\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\r\n       \r\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nvec2 filterTextureCoord(  vec2 aPosition )\r\n{\r\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\r\n}\r\n\r\nvec2 getFilterCoord( vec2 aPosition )\r\n{\r\n    return  ( uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\r\n}   \r\n\r\nvoid main(void)\r\n{\r\n    gl_Position = filterVertexPosition(aPosition);\r\n    vTextureCoord = filterTextureCoord(aPosition);\r\n    vMaskCoord = getFilterCoord(aPosition);\r\n}\r\n";
 
-    var source = "struct GlobalFilterUniforms {\n  uInputSize:vec4<f32>,\n  uInputPixel:vec4<f32>,\n  uInputClamp:vec4<f32>,\n  uOutputFrame:vec4<f32>,\n  uGlobalFrame:vec4<f32>,\n  uOutputTexture:vec4<f32>,  \n};\n\nstruct MaskUniforms {\n  uFilterMatrix:mat3x3<f32>,\n  uMaskClamp:vec4<f32>,\n  uAlpha:f32,\n};\n\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler : sampler;\n\n@group(1) @binding(0) var<uniform> filterUniforms : MaskUniforms;\n@group(1) @binding(1) var uMaskTexture: texture_2d<f32>;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>,\n    @location(1) filterUv : vec2<f32>,\n  };\n\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\n{\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \n}\n\nfn getFilterCoord(aPosition:vec2<f32> ) -> vec2<f32>\n{\n  return ( filterUniforms.uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\n}\n\nfn getSize() -> vec2<f32>\n{\n\n  \n  return gfu.uGlobalFrame.zw;\n}\n  \n@vertex\nfn mainVertex(\n  @location(0) aPosition : vec2<f32>, \n) -> VSOutput {\n  return VSOutput(\n   filterVertexPosition(aPosition),\n   filterTextureCoord(aPosition),\n   getFilterCoord(aPosition)\n  );\n}\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>,\n  @location(1) filterUv: vec2<f32>,\n  @builtin(position) position: vec4<f32>\n) -> @location(0) vec4<f32> {\n\n    var maskClamp = filterUniforms.uMaskClamp;\n\n     var clip = step(3.5,\n        step(maskClamp.x, filterUv.x) +\n        step(maskClamp.y, filterUv.y) +\n        step(filterUv.x, maskClamp.z) +\n        step(filterUv.y, maskClamp.w));\n\n    var mask = textureSample(uMaskTexture, uSampler, filterUv);\n    var source = textureSample(uTexture, uSampler, uv);\n    \n    var npmAlpha = 0.0;\n\n    var alphaMul = 1.0 - npmAlpha * (1.0 - mask.a);\n\n    var a = (alphaMul * mask.r) * clip;\n\n    return vec4(source.rgb, source.a) * a;\n}";
+    var source = "struct GlobalFilterUniforms {\r\n  uInputSize:vec4<f32>,\r\n  uInputPixel:vec4<f32>,\r\n  uInputClamp:vec4<f32>,\r\n  uOutputFrame:vec4<f32>,\r\n  uGlobalFrame:vec4<f32>,\r\n  uOutputTexture:vec4<f32>,  \r\n};\r\n\r\nstruct MaskUniforms {\r\n  uFilterMatrix:mat3x3<f32>,\r\n  uMaskClamp:vec4<f32>,\r\n  uAlpha:f32,\r\n};\r\n\r\n\r\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\r\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\r\n@group(0) @binding(2) var uSampler : sampler;\r\n\r\n@group(1) @binding(0) var<uniform> filterUniforms : MaskUniforms;\r\n@group(1) @binding(1) var uMaskTexture: texture_2d<f32>;\r\n\r\nstruct VSOutput {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv : vec2<f32>,\r\n    @location(1) filterUv : vec2<f32>,\r\n  };\r\n\r\nfn filterVertexPosition(aPosition:vec2<f32>) -> vec4<f32>\r\n{\r\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\r\n\r\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\r\n    position.y = position.y * (2.0*gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\r\n\r\n    return vec4(position, 0.0, 1.0);\r\n}\r\n\r\nfn filterTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\r\n}\r\n\r\nfn globalTextureCoord( aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return  (aPosition.xy / gfu.uGlobalFrame.zw) + (gfu.uGlobalFrame.xy / gfu.uGlobalFrame.zw);  \r\n}\r\n\r\nfn getFilterCoord(aPosition:vec2<f32> ) -> vec2<f32>\r\n{\r\n  return ( filterUniforms.uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\r\n}\r\n\r\nfn getSize() -> vec2<f32>\r\n{\r\n\r\n  \r\n  return gfu.uGlobalFrame.zw;\r\n}\r\n  \r\n@vertex\r\nfn mainVertex(\r\n  @location(0) aPosition : vec2<f32>, \r\n) -> VSOutput {\r\n  return VSOutput(\r\n   filterVertexPosition(aPosition),\r\n   filterTextureCoord(aPosition),\r\n   getFilterCoord(aPosition)\r\n  );\r\n}\r\n\r\n@fragment\r\nfn mainFragment(\r\n  @location(0) uv: vec2<f32>,\r\n  @location(1) filterUv: vec2<f32>,\r\n  @builtin(position) position: vec4<f32>\r\n) -> @location(0) vec4<f32> {\r\n\r\n    var maskClamp = filterUniforms.uMaskClamp;\r\n\r\n     var clip = step(3.5,\r\n        step(maskClamp.x, filterUv.x) +\r\n        step(maskClamp.y, filterUv.y) +\r\n        step(filterUv.x, maskClamp.z) +\r\n        step(filterUv.y, maskClamp.w));\r\n\r\n    var mask = textureSample(uMaskTexture, uSampler, filterUv);\r\n    var source = textureSample(uTexture, uSampler, uv);\r\n    \r\n    var npmAlpha = 0.0;\r\n\r\n    var alphaMul = 1.0 - npmAlpha * (1.0 - mask.a);\r\n\r\n    var a = (alphaMul * mask.r) * clip;\r\n\r\n    return vec4(source.rgb, source.a) * a;\r\n}";
 
     "use strict";
     var __defProp$q = Object.defineProperty;
@@ -33586,7 +33579,7 @@ ${e}`);
       }
     }
 
-    var hsl = "fn getLuminosity(c: vec3<f32>) -> f32 {\n  return 0.3 * c.r + 0.59 * c.g + 0.11 * c.b;\n}\n\nfn setLuminosity(c: vec3<f32>, lum: f32) -> vec3<f32> {\n  let d: f32 = lum - getLuminosity(c);\n  let newColor: vec3<f32> = c.rgb + vec3<f32>(d, d, d);\n\n  // clip back into legal range\n  let newLum: f32 = getLuminosity(newColor);\n  let cMin: f32 = min(newColor.r, min(newColor.g, newColor.b));\n  let cMax: f32 = max(newColor.r, max(newColor.g, newColor.b));\n\n  let t1: f32 = newLum / (newLum - cMin);\n  let t2: f32 = (1.0 - newLum) / (cMax - newLum);\n\n  let finalColor = mix(vec3<f32>(newLum, newLum, newLum), newColor, select(select(1.0, t2, cMax > 1.0), t1, cMin < 0.0));\n\n  return finalColor;\n}\n\nfn getSaturation(c: vec3<f32>) -> f32 {\n  return max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));\n}\n\n// Set saturation if color components are sorted in ascending order.\nfn setSaturationMinMidMax(cSorted: vec3<f32>, s: f32) -> vec3<f32> {\n  var result: vec3<f32>;\n  if (cSorted.z > cSorted.x) {\n    let newY = (((cSorted.y - cSorted.x) * s) / (cSorted.z - cSorted.x));\n    result = vec3<f32>(0.0, newY, s);\n  } else {\n    result = vec3<f32>(0.0, 0.0, 0.0);\n  }\n  return vec3<f32>(result.x, result.y, result.z);\n}\n\nfn setSaturation(c: vec3<f32>, s: f32) -> vec3<f32> {\n    var result: vec3<f32> = c;\n\n    if (c.r <= c.g && c.r <= c.b) {\n        if (c.g <= c.b) {\n            result = setSaturationMinMidMax(result, s);\n        } else {\n            var temp: vec3<f32> = vec3<f32>(result.r, result.b, result.g);\n            temp = setSaturationMinMidMax(temp, s);\n            result = vec3<f32>(temp.r, temp.b, temp.g);\n        }\n    } else if (c.g <= c.r && c.g <= c.b) {\n        if (c.r <= c.b) {\n            var temp: vec3<f32> = vec3<f32>(result.g, result.r, result.b);\n            temp = setSaturationMinMidMax(temp, s);\n            result = vec3<f32>(temp.g, temp.r, temp.b);\n        } else {\n            var temp: vec3<f32> = vec3<f32>(result.g, result.b, result.r);\n            temp = setSaturationMinMidMax(temp, s);\n            result = vec3<f32>(temp.g, temp.b, temp.r);\n        }\n    } else {\n        if (c.r <= c.g) {\n            var temp: vec3<f32> = vec3<f32>(result.b, result.r, result.g);\n            temp = setSaturationMinMidMax(temp, s);\n            result = vec3<f32>(temp.b, temp.r, temp.g);\n        } else {\n            var temp: vec3<f32> = vec3<f32>(result.b, result.g, result.r);\n            temp = setSaturationMinMidMax(temp, s);\n            result = vec3<f32>(temp.b, temp.g, temp.r);\n        }\n    }\n\n    return result;\n}";
+    var hsl = "fn getLuminosity(c: vec3<f32>) -> f32 {\r\n  return 0.3 * c.r + 0.59 * c.g + 0.11 * c.b;\r\n}\r\n\r\nfn setLuminosity(c: vec3<f32>, lum: f32) -> vec3<f32> {\r\n  let d: f32 = lum - getLuminosity(c);\r\n  let newColor: vec3<f32> = c.rgb + vec3<f32>(d, d, d);\r\n\r\n  // clip back into legal range\r\n  let newLum: f32 = getLuminosity(newColor);\r\n  let cMin: f32 = min(newColor.r, min(newColor.g, newColor.b));\r\n  let cMax: f32 = max(newColor.r, max(newColor.g, newColor.b));\r\n\r\n  let t1: f32 = newLum / (newLum - cMin);\r\n  let t2: f32 = (1.0 - newLum) / (cMax - newLum);\r\n\r\n  let finalColor = mix(vec3<f32>(newLum, newLum, newLum), newColor, select(select(1.0, t2, cMax > 1.0), t1, cMin < 0.0));\r\n\r\n  return finalColor;\r\n}\r\n\r\nfn getSaturation(c: vec3<f32>) -> f32 {\r\n  return max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));\r\n}\r\n\r\n// Set saturation if color components are sorted in ascending order.\r\nfn setSaturationMinMidMax(cSorted: vec3<f32>, s: f32) -> vec3<f32> {\r\n  var result: vec3<f32>;\r\n  if (cSorted.z > cSorted.x) {\r\n    let newY = (((cSorted.y - cSorted.x) * s) / (cSorted.z - cSorted.x));\r\n    result = vec3<f32>(0.0, newY, s);\r\n  } else {\r\n    result = vec3<f32>(0.0, 0.0, 0.0);\r\n  }\r\n  return vec3<f32>(result.x, result.y, result.z);\r\n}\r\n\r\nfn setSaturation(c: vec3<f32>, s: f32) -> vec3<f32> {\r\n    var result: vec3<f32> = c;\r\n\r\n    if (c.r <= c.g && c.r <= c.b) {\r\n        if (c.g <= c.b) {\r\n            result = setSaturationMinMidMax(result, s);\r\n        } else {\r\n            var temp: vec3<f32> = vec3<f32>(result.r, result.b, result.g);\r\n            temp = setSaturationMinMidMax(temp, s);\r\n            result = vec3<f32>(temp.r, temp.b, temp.g);\r\n        }\r\n    } else if (c.g <= c.r && c.g <= c.b) {\r\n        if (c.r <= c.b) {\r\n            var temp: vec3<f32> = vec3<f32>(result.g, result.r, result.b);\r\n            temp = setSaturationMinMidMax(temp, s);\r\n            result = vec3<f32>(temp.g, temp.r, temp.b);\r\n        } else {\r\n            var temp: vec3<f32> = vec3<f32>(result.g, result.b, result.r);\r\n            temp = setSaturationMinMidMax(temp, s);\r\n            result = vec3<f32>(temp.g, temp.b, temp.r);\r\n        }\r\n    } else {\r\n        if (c.r <= c.g) {\r\n            var temp: vec3<f32> = vec3<f32>(result.b, result.r, result.g);\r\n            temp = setSaturationMinMidMax(temp, s);\r\n            result = vec3<f32>(temp.b, temp.r, temp.g);\r\n        } else {\r\n            var temp: vec3<f32> = vec3<f32>(result.b, result.g, result.r);\r\n            temp = setSaturationMinMidMax(temp, s);\r\n            result = vec3<f32>(temp.b, temp.g, temp.r);\r\n        }\r\n    }\r\n\r\n    return result;\r\n}";
 
     "use strict";
 
@@ -34621,6 +34614,34 @@ ${e}`);
       get height() {
         return this._height;
       }
+      /**
+       * Sets the size of the TilingSprite to the specified width and height.
+       * This is faster than setting the width and height separately.
+       * @param value - This can be either a number or a [Size]{@link Size} object.
+       * @param height - The height to set. Defaults to the value of `width` if not provided.
+       */
+      setSize(value, height) {
+        var _a;
+        if (typeof value === "object") {
+          height = (_a = value.height) != null ? _a : value.width;
+          value = value.width;
+        }
+        this._width = value;
+        this._height = height != null ? height : value;
+        this.onViewUpdate();
+      }
+      /**
+       * Retrieves the size of the TilingSprite as a [Size]{@link Size} object.
+       * This is faster than get the width and height separately.
+       * @param out - Optional object to store the size in.
+       * @returns - The size of the TilingSprite.
+       */
+      getSize(out) {
+        out || (out = {});
+        out.width = this._width;
+        out.height = this._height;
+        return out;
+      }
       _updateBounds() {
         const bounds = this._bounds;
         const anchor = this._anchor;
@@ -34872,9 +34893,7 @@ ${e}`);
        * @returns - The size of the Text.
        */
       getSize(out) {
-        if (!out) {
-          out = {};
-        }
+        out || (out = {});
         out.width = Math.abs(this.scale.x) * this.bounds.width;
         out.height = Math.abs(this.scale.y) * this.bounds.height;
         return out;
@@ -34887,21 +34906,14 @@ ${e}`);
        */
       setSize(value, height) {
         var _a;
-        let convertedWidth;
-        let convertedHeight;
-        if (typeof value !== "object") {
-          convertedWidth = value;
-          convertedHeight = height != null ? height : value;
+        if (typeof value === "object") {
+          height = (_a = value.height) != null ? _a : value.width;
+          value = value.width;
         } else {
-          convertedWidth = value.width;
-          convertedHeight = (_a = value.height) != null ? _a : value.width;
+          height != null ? height : height = value;
         }
-        if (convertedWidth !== void 0) {
-          this._setWidth(convertedWidth, this.bounds.width);
-        }
-        if (convertedHeight !== void 0) {
-          this._setHeight(convertedHeight, this.bounds.height);
-        }
+        value !== void 0 && this._setWidth(value, this.bounds.width);
+        height !== void 0 && this._setHeight(height, this.bounds.height);
       }
       /**
        * Adds the bounds of this text to the bounds object.
@@ -41500,7 +41512,7 @@ ${e}`);
 
     "use strict";
     let saidHello = false;
-    const VERSION = "8.3.2";
+    const VERSION = "8.3.4";
     function sayHello(type) {
       if (saidHello) {
         return;
@@ -41607,9 +41619,12 @@ ${e}`);
         this._now = performance.now();
       }
       addRenderable(renderable, instructionSet) {
+        if (!this.enabled)
+          return;
         renderable._lastUsed = this._now;
         if (renderable._lastInstructionTick === -1) {
           this._managedRenderables.push(renderable);
+          renderable.once("destroyed", this._removeRenderable, this);
         }
         renderable._lastInstructionTick = instructionSet.tick;
       }
@@ -41622,6 +41637,10 @@ ${e}`);
         let offset = 0;
         for (let i = 0; i < managedRenderables.length; i++) {
           const renderable = managedRenderables[i];
+          if (renderable === null) {
+            offset++;
+            continue;
+          }
           const renderGroup = (_a = renderable.renderGroup) != null ? _a : renderable.parentRenderGroup;
           const currentIndex = (_c = (_b = renderGroup == null ? void 0 : renderGroup.instructionSet) == null ? void 0 : _b.tick) != null ? _c : -1;
           if (renderable._lastInstructionTick !== currentIndex && now - renderable._lastUsed > this.maxUnusedTime) {
@@ -41631,6 +41650,7 @@ ${e}`);
             }
             renderable._lastInstructionTick = -1;
             offset++;
+            renderable.off("destroyed", this._removeRenderable, this);
           } else {
             managedRenderables[i - offset] = renderable;
           }
@@ -41641,6 +41661,13 @@ ${e}`);
         this.enabled = false;
         this._renderer = null;
         this._managedRenderables.length = 0;
+      }
+      _removeRenderable(renderable) {
+        const index = this._managedRenderables.indexOf(renderable);
+        if (index >= 0) {
+          renderable.off("destroyed", this._removeRenderable, this);
+          this._managedRenderables[index] = null;
+        }
       }
     };
     /** @ignore */
@@ -41788,6 +41815,16 @@ ${e}`);
       return a;
     };
     const _ViewSystem = class _ViewSystem {
+      /**
+       * Whether CSS dimensions of canvas view should be resized to screen dimensions automatically.
+       * @member {boolean}
+       */
+      get autoDensity() {
+        return this.texture.source.autoDensity;
+      }
+      set autoDensity(value) {
+        this.texture.source.autoDensity = value;
+      }
       /** The resolution / device pixel ratio of the renderer. */
       get resolution() {
         return this.texture.source._resolution;
@@ -41820,10 +41857,6 @@ ${e}`);
         });
         this.texture.source.transparent = options.backgroundAlpha < 1;
         this.multiView = !!options.multiView;
-        if (this.autoDensity) {
-          this.canvas.style.width = `${this.texture.width}px`;
-          this.canvas.style.height = `${this.texture.height}px`;
-        }
         this.resolution = options.resolution;
       }
       /**
@@ -41836,10 +41869,6 @@ ${e}`);
         this.texture.source.resize(desiredScreenWidth, desiredScreenHeight, resolution);
         this.screen.width = this.texture.frame.width;
         this.screen.height = this.texture.frame.height;
-        if (this.autoDensity) {
-          this.canvas.style.width = `${desiredScreenWidth}px`;
-          this.canvas.style.height = `${desiredScreenHeight}px`;
-        }
       }
       /**
        * Destroys this System and optionally removes the canvas from the dom.
@@ -42371,8 +42400,9 @@ ${e}`);
         this.renderPassEncoder.setBindGroup(index, gpuBindGroup);
       }
       setGeometry(geometry, program) {
-        for (const i in program.attributeData) {
-          this._setVertexBuffer(program.attributeData[i].location, geometry.attributes[i].buffer);
+        const buffersToBind = this._renderer.pipeline.getBufferNamesToBind(geometry, program);
+        for (const i in buffersToBind) {
+          this._setVertexBuffer(i, geometry.attributes[buffersToBind[i]].buffer);
         }
         if (geometry.indexBuffer) {
           this._setIndexBuffer(geometry.indexBuffer);
@@ -42788,6 +42818,7 @@ ${e}`);
       constructor(renderer) {
         this._moduleCache = /* @__PURE__ */ Object.create(null);
         this._bufferLayoutsCache = /* @__PURE__ */ Object.create(null);
+        this._bindingNamesCache = /* @__PURE__ */ Object.create(null);
         this._pipeCache = /* @__PURE__ */ Object.create(null);
         this._pipeStateCaches = /* @__PURE__ */ Object.create(null);
         this._colorMask = 15;
@@ -42922,6 +42953,31 @@ ${e}`);
         const stringKey = keyGen.join("|");
         program._attributeLocationsKey = createIdFromString(stringKey, "programAttributes");
         return program._attributeLocationsKey;
+      }
+      /**
+       * Returns a hash of buffer names mapped to bind locations.
+       * This is used to bind the correct buffer to the correct location in the shader.
+       * @param geometry - The geometry where to get the buffer names
+       * @param program - The program where to get the buffer names
+       * @returns An object of buffer names mapped to the bind location.
+       */
+      getBufferNamesToBind(geometry, program) {
+        const key = geometry._layoutKey << 16 | program._attributeLocationsKey;
+        if (this._bindingNamesCache[key])
+          return this._bindingNamesCache[key];
+        const data = this._createVertexBufferLayouts(geometry, program);
+        const bufferNamesToBind = /* @__PURE__ */ Object.create(null);
+        const attributeData = program.attributeData;
+        for (let i = 0; i < data.length; i++) {
+          for (const j in attributeData) {
+            if (attributeData[j].location === i) {
+              bufferNamesToBind[i] = j;
+              break;
+            }
+          }
+        }
+        this._bindingNamesCache[key] = bufferNamesToBind;
+        return bufferNamesToBind;
       }
       _createVertexBufferLayouts(geometry, program) {
         if (!program._attributeLocationsKey)
@@ -45236,6 +45292,35 @@ ${e}`);
         this.bounds.maxY = this._height = value;
         this.onViewUpdate();
       }
+      /**
+       * Sets the size of the NiceSliceSprite to the specified width and height.
+       * setting this will actually modify the vertices and UV's of this plane
+       * This is faster than setting the width and height separately.
+       * @param value - This can be either a number or a [Size]{@link Size} object.
+       * @param height - The height to set. Defaults to the value of `width` if not provided.
+       */
+      setSize(value, height) {
+        var _a;
+        if (typeof value === "object") {
+          height = (_a = value.height) != null ? _a : value.width;
+          value = value.width;
+        }
+        this.bounds.maxX = this._width = value;
+        this.bounds.maxY = this._height = height != null ? height : value;
+        this.onViewUpdate();
+      }
+      /**
+       * Retrieves the size of the NineSliceSprite as a [Size]{@link Size} object.
+       * This is faster than get the width and height separately.
+       * @param out - Optional object to store the size in.
+       * @returns - The size of the NineSliceSprite.
+       */
+      getSize(out) {
+        out || (out = {});
+        out.width = this._width;
+        out.height = this._height;
+        return out;
+      }
       /** The width of the left column (a) of the NineSliceSprite. */
       get leftWidth() {
         return this._leftWidth;
@@ -45326,7 +45411,6 @@ ${e}`);
           this._texture.destroy(destroyTextureSource);
         }
         this._texture = null;
-        this.bounds = null;
       }
     };
     /** The default options, used to override the initial values of any options passed in the constructor. */

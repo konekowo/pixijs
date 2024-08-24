@@ -36,6 +36,7 @@ export declare class PipelineSystem implements System {
     protected CONTEXT_UID: number;
     private _moduleCache;
     private _bufferLayoutsCache;
+    private readonly _bindingNamesCache;
     private _pipeCache;
     private readonly _pipeStateCaches;
     private _gpu;
@@ -57,6 +58,14 @@ export declare class PipelineSystem implements System {
     private _createModule;
     private _generateBufferKey;
     private _generateAttributeLocationsKey;
+    /**
+     * Returns a hash of buffer names mapped to bind locations.
+     * This is used to bind the correct buffer to the correct location in the shader.
+     * @param geometry - The geometry where to get the buffer names
+     * @param program - The program where to get the buffer names
+     * @returns An object of buffer names mapped to the bind location.
+     */
+    getBufferNamesToBind(geometry: Geometry, program: GpuProgram): Record<string, string>;
     private _createVertexBufferLayouts;
     private _updatePipeHash;
     destroy(): void;

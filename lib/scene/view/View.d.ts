@@ -3,6 +3,7 @@ import { Container } from '../container/Container';
 import type { PointData } from '../../maths/point/PointData';
 import type { View } from '../../rendering/renderers/shared/view/View';
 import type { BoundsData } from '../container/bounds/Bounds';
+import type { DestroyOptions } from '../container/destroyTypes';
 /**
  * A ViewContainer is a type of container that represents a view.
  * This view can be a Sprite, a Graphics object, or any other object that can be rendered.
@@ -48,4 +49,5 @@ export declare abstract class ViewContainer extends Container implements View {
     abstract batched: boolean;
     /** @private */
     protected abstract onViewUpdate(): void;
+    destroy(options?: DestroyOptions): void;
 }

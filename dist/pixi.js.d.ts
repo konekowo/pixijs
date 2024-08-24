@@ -4750,7 +4750,8 @@ export declare class ViewSystem implements System$1<ViewSystemOptions, TypeOrBoo
 	 * Whether CSS dimensions of canvas view should be resized to screen dimensions automatically.
 	 * @member {boolean}
 	 */
-	autoDensity: boolean;
+	get autoDensity(): boolean;
+	set autoDensity(value: boolean);
 	/** Whether to enable anti-aliasing. This may affect performance. */
 	antialias: boolean;
 	/**
@@ -4977,6 +4978,7 @@ export declare abstract class ViewContainer extends Container implements View {
 	abstract batched: boolean;
 	/** @private */
 	protected abstract onViewUpdate(): void;
+	destroy(options?: DestroyOptions): void;
 }
 /**
  * Options for the {@link scene.Sprite} constructor.
@@ -6245,6 +6247,7 @@ export declare class PipelineSystem implements System$1 {
 	protected CONTEXT_UID: number;
 	private _moduleCache;
 	private _bufferLayoutsCache;
+	private readonly _bindingNamesCache;
 	private _pipeCache;
 	private readonly _pipeStateCaches;
 	private _gpu;
@@ -6266,6 +6269,14 @@ export declare class PipelineSystem implements System$1 {
 	private _createModule;
 	private _generateBufferKey;
 	private _generateAttributeLocationsKey;
+	/**
+	 * Returns a hash of buffer names mapped to bind locations.
+	 * This is used to bind the correct buffer to the correct location in the shader.
+	 * @param geometry - The geometry where to get the buffer names
+	 * @param program - The program where to get the buffer names
+	 * @returns An object of buffer names mapped to the bind location.
+	 */
+	getBufferNamesToBind(geometry: Geometry, program: GpuProgram): Record<string, string>;
 	private _createVertexBufferLayouts;
 	private _updatePipeHash;
 	destroy(): void;
@@ -9457,6 +9468,7 @@ export declare class RenderableGCSystem implements System$1<RenderableGCSystemOp
 	/** Runs the scheduled garbage collection */
 	run(): void;
 	destroy(): void;
+	private _removeRenderable;
 }
 /**
  * Options for the {@link TextureGCSystem}.
@@ -15443,6 +15455,20 @@ export declare class TilingSprite extends ViewContainer implements View, Instruc
 	set height(value: number);
 	/** The height of the tiling area. */
 	get height(): number;
+	/**
+	 * Sets the size of the TilingSprite to the specified width and height.
+	 * This is faster than setting the width and height separately.
+	 * @param value - This can be either a number or a [Size]{@link Size} object.
+	 * @param height - The height to set. Defaults to the value of `width` if not provided.
+	 */
+	setSize(value: number | Optional<Size, "height">, height?: number): void;
+	/**
+	 * Retrieves the size of the TilingSprite as a [Size]{@link Size} object.
+	 * This is faster than get the width and height separately.
+	 * @param out - Optional object to store the size in.
+	 * @returns - The size of the TilingSprite.
+	 */
+	getSize(out?: Size): Size;
 	protected _updateBounds(): void;
 	/**
 	 * Adds the bounds of this object to the bounds object.
@@ -21030,6 +21056,21 @@ export declare class NineSliceSprite extends ViewContainer implements View {
 	/** The height of the NineSliceSprite, setting this will actually modify the vertices and UV's of this plane. */
 	get height(): number;
 	set height(value: number);
+	/**
+	 * Sets the size of the NiceSliceSprite to the specified width and height.
+	 * setting this will actually modify the vertices and UV's of this plane
+	 * This is faster than setting the width and height separately.
+	 * @param value - This can be either a number or a [Size]{@link Size} object.
+	 * @param height - The height to set. Defaults to the value of `width` if not provided.
+	 */
+	setSize(value: number | Optional<Size, "height">, height?: number): void;
+	/**
+	 * Retrieves the size of the NineSliceSprite as a [Size]{@link Size} object.
+	 * This is faster than get the width and height separately.
+	 * @param out - Optional object to store the size in.
+	 * @returns - The size of the NineSliceSprite.
+	 */
+	getSize(out?: Size): Size;
 	/** The width of the left column (a) of the NineSliceSprite. */
 	get leftWidth(): number;
 	set leftWidth(value: number);

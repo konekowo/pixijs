@@ -97,7 +97,8 @@ export declare class ViewSystem implements System<ViewSystemOptions, TypeOrBool<
      * Whether CSS dimensions of canvas view should be resized to screen dimensions automatically.
      * @member {boolean}
      */
-    autoDensity: boolean;
+    get autoDensity(): boolean;
+    set autoDensity(value: boolean);
     /** Whether to enable anti-aliasing. This may affect performance. */
     antialias: boolean;
     /**

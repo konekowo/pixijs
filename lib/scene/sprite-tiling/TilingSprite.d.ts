@@ -2,11 +2,13 @@ import { ObservablePoint } from '../../maths/point/ObservablePoint';
 import { Texture } from '../../rendering/renderers/shared/texture/Texture';
 import { Transform } from '../../utils/misc/Transform';
 import { ViewContainer } from '../view/View';
+import type { Size } from '../../maths/misc/Size';
 import type { PointData } from '../../maths/point/PointData';
 import type { Instruction } from '../../rendering/renderers/shared/instructions/Instruction';
 import type { View } from '../../rendering/renderers/shared/view/View';
 import type { Bounds } from '../container/bounds/Bounds';
 import type { ContainerOptions } from '../container/Container';
+import type { Optional } from '../container/container-mixins/measureMixin';
 import type { DestroyOptions } from '../container/destroyTypes';
 /**
  * Constructor options used for `TilingSprite` instances. Extends {@link scene.TilingSpriteViewOptions}
@@ -160,6 +162,20 @@ export declare class TilingSprite extends ViewContainer implements View, Instruc
     set height(value: number);
     /** The height of the tiling area. */
     get height(): number;
+    /**
+     * Sets the size of the TilingSprite to the specified width and height.
+     * This is faster than setting the width and height separately.
+     * @param value - This can be either a number or a [Size]{@link Size} object.
+     * @param height - The height to set. Defaults to the value of `width` if not provided.
+     */
+    setSize(value: number | Optional<Size, 'height'>, height?: number): void;
+    /**
+     * Retrieves the size of the TilingSprite as a [Size]{@link Size} object.
+     * This is faster than get the width and height separately.
+     * @param out - Optional object to store the size in.
+     * @returns - The size of the TilingSprite.
+     */
+    getSize(out?: Size): Size;
     protected _updateBounds(): void;
     /**
      * Adds the bounds of this object to the bounds object.
